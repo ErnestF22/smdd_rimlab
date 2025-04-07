@@ -1,4 +1,4 @@
-DSD (Degenerate Subspaces Detection) Project README
+### Single Measurement Degeneracy Detection
 
 Dependencies:
 
@@ -12,6 +12,6 @@ Optional: Censi's EGSL (hard to compile on Ubuntu > 20.04)
 Executable scripts for running the methods on dataset sequences are in folder app.
 Executable scripts for running the methods on single scans are in folder test.
 
-
+© 2025 Ernesto Fontana, Dario Lodi Rizzini (RIMLab laboratory at the University of Parma).
 
 
