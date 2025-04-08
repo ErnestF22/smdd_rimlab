@@ -5,7 +5,7 @@ Example of usage is: from build folder, call the following bash commmand
 > $ ./test_vomp -cfg ../cfg/gmm_estim.cfg
 
 If one desires to set a parameter differently from what is in the config file, use the same syntax.
-E.g., if one wants to set param "in" to "sample.csv", use
+E.g., if one wants to set param "in" to "sample.csv", use:
 
 > $ ./test_vomp -cfg ../cfg/gmm_estim.cfg -in sample.csv
 
