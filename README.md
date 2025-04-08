@@ -13,11 +13,11 @@ Executable scripts for running the methods on dataset sequences are in folder ap
 
 Executable scripts for running the methods on single scans are in folder test.
 
-Compiling should require the very standard pipeline
+Compiling should require the following very standard bash shell command sequence:
 
 > $ mkdir build && cd build\
-> cmake ..\
-> make
+> $ cmake ..\
+> $ make
 
 CMakeLists is set up so that both *test* and *app* executables will be found inside build/ folder.
 
