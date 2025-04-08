@@ -1,3 +1,5 @@
+Headers of utility/common functions for the proposed SMDD methods:
+
 - bin_utils.h\
 Util functions for this project's I/O on .bin files (GEODE dataset LIDAR format)
 
