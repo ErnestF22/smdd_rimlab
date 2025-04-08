@@ -1,3 +1,5 @@
+Executables for running SMDD methods on single instances of 2D or 3D inputs.
+
 - create_degenerate_scan.cpp\
 Create a highly-degenerate scan and optionally save it in CSV format
 
