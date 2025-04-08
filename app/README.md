@@ -1,3 +1,5 @@
+Executables to run the SMDD methods on dataset sequences (separate 2D and 3D versions) and to interpret and analyze results arising from these runs.
+
 - fim_ise_rtc_3d_results_interpreter\
 Results interpreter used to threshold and evaluate FIM, ISE, RTC 3D test results
 
