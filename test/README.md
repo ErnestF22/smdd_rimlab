@@ -1,4 +1,4 @@
-Executables for running SMDD methods on single instances of 2D or 3D inputs.
+Executables for running SMDD methods on single instances of 2D or 3D inputs, along other partial tests to check validity of portions of the methods.
 
 - create_degenerate_scan.cpp\
 Create a highly-degenerate scan and optionally save it in CSV format
