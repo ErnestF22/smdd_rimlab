@@ -17,7 +17,7 @@ Compiling should require the very standard pipeline
 
 > $ mkdir build && cd build\
 > cmake ..\
-> make\
+> make
 
 CMakeLists is set up so that both *test* and *app* executables will be found inside build/ folder.
 
