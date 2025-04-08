@@ -1,4 +1,4 @@
-Configuration files for the most relevant executables:
+Configuration files for the most relevant executables.
 
 Example of usage is: from build folder, call the following bash commmand 
 
