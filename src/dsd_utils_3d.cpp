@@ -76,7 +76,7 @@ namespace dsd
         return c3k * e;
     }
 
-    void vonMisesMixture3d(std::vector<double> &vmm,
+    void vonMisesMixture3d(std::vector<double> &vomp,
                            int nSamples,
                            const std::vector<Vector3> &mu,
                            const std::vector<double> &k,
@@ -87,9 +87,9 @@ namespace dsd
 
         int numCols = 2 * nSamples * nSamples;
 
-        int vmmSz = numCols;
-        vmm.resize(vmmSz);
-        vmm.assign(vmmSz, 0.0f);
+        int vompSz = numCols;
+        vomp.resize(vompSz);
+        vomp.assign(vompSz, 0.0f);
         Eigen::MatrixXi validsCtr(Eigen::MatrixXi::Zero(2 * nSamples, nSamples));
         int index = 0;
         int sizePhis = 2 * nSamples;
@@ -105,7 +105,7 @@ namespace dsd
                 int j = jTheta * sizePhis + jPhi;
                 double phi = dtheta * jPhi;
 
-                // vmm[i] = 0.0;
+                // vomp[i] = 0.0;
                 for (int i = 0; i < szPadded; ++i)
                 {
                     if (i >= mu.size())
@@ -122,7 +122,7 @@ namespace dsd
                         if (std::isfinite(vmf))
                         {
                             validsCtr(jPhi, jTheta)++;
-                            vmm[j] += w[i] * vmf; //!!!!
+                            vomp[j] += w[i] * vmf; //!!!!
                             // DEBUGGING CUDA
                             // int i = index % mukwSz;
                             int jCheck = (index - i) / szPadded;
@@ -147,7 +147,7 @@ namespace dsd
                     {
                         // ROFL_VAR2(j, "xThetaPhi NOT finite")
                     }
-                    // ROFL_VAR1(vmm[j])
+                    // ROFL_VAR1(vomp[j])
                     index++;
                 }
             }
@@ -156,9 +156,9 @@ namespace dsd
         ROFL_VAR2(validsCtr.sum(), nSamples * 2 * nSamples)
     }
 
-    void vonMisesStats3dCuda(VectorVector3 &musVmm,
-                             std::vector<double> &kappasVmm,
-                             std::vector<double> &weightsVmm,
+    void vonMisesStats3dCuda(VectorVector3 &musVomp,
+                             std::vector<double> &kappasVomp,
+                             std::vector<double> &weightsVomp,
                              int szPadded,
                              const VectorVector3 &mus,
                              const VectorMatrix3 &sigmas,
@@ -168,9 +168,9 @@ namespace dsd
 
         size_t numGaussians = mus.size();
 
-        musVmm.resize(szPadded, Vector3::Zero());
-        weightsVmm.resize(szPadded, 0.0);
-        kappasVmm.resize(szPadded, 0.0);
+        musVomp.resize(szPadded, Vector3::Zero());
+        weightsVomp.resize(szPadded, 0.0);
+        kappasVomp.resize(szPadded, 0.0);
 
         int validDiagCtr = 0;
         for (int i = 0; i < numGaussians; ++i)
@@ -180,12 +180,12 @@ namespace dsd
             bool isDiVehiclealid = dsd::diagonalize3d(sigmas[i], eigvalsMat, eigvecs);
             if (!isDiVehiclealid)
             {
-                musVmm[2 * i] = Vector3::Zero();
-                kappasVmm[2 * i] = 0;
-                musVmm[2 * i + 1] = Vector3::Zero();
-                kappasVmm[2 * i + 1] = kappasVmm[2 * i];
-                weightsVmm[2 * i] = 0;
-                weightsVmm[2 * i + 1] = 0;
+                musVomp[2 * i] = Vector3::Zero();
+                kappasVomp[2 * i] = 0;
+                musVomp[2 * i + 1] = Vector3::Zero();
+                kappasVomp[2 * i + 1] = kappasVomp[2 * i];
+                weightsVomp[2 * i] = 0;
+                weightsVomp[2 * i + 1] = 0;
                 continue;
             }
             auto eigvals = eigvalsMat.diagonal();
@@ -202,26 +202,26 @@ namespace dsd
 
             validDiagCtr++;
             // ROFL_VAR1(validDiagCtr);
-            musVmm[2 * i] = eigvecs.col(minIdx);
+            musVomp[2 * i] = eigvecs.col(minIdx);
             if (lmax > 10.0 * lmin)
             {
-                kappasVmm[2 * i] = 10.0;
+                kappasVomp[2 * i] = 10.0;
             }
             else
             {
-                kappasVmm[2 * i] = lmax / lmin;
+                kappasVomp[2 * i] = lmax / lmin;
             }
 
-            musVmm[2 * i + 1] = -eigvecs.col(minIdx);
-            kappasVmm[2 * i + 1] = kappasVmm[2 * i];
-            weightsVmm[2 * i] = weights[i];
-            weightsVmm[2 * i + 1] = weights[i];
+            musVomp[2 * i + 1] = -eigvecs.col(minIdx);
+            kappasVomp[2 * i + 1] = kappasVomp[2 * i];
+            weightsVomp[2 * i] = weights[i];
+            weightsVomp[2 * i + 1] = weights[i];
 
             // ROFL_VAR3(i, phis[i], kappas[i]);
         }
     }
 
-    void vonMisesStats3d(std::vector<double> &vmm,
+    void vonMisesStats3d(std::vector<double> &vomp,
                          int nSamples,
                          const VectorVector3 &mus,
                          const VectorMatrix3 &sigmas,
@@ -230,13 +230,13 @@ namespace dsd
     {
         VectorVector3 musVonMises;
         std::vector<double> kappas;
-        std::vector<double> weightsVmm;
+        std::vector<double> weightsVomp;
         double phiTmp;
 
         size_t numGaussians = mus.size();
         musVonMises.resize(2 * numGaussians);
         kappas.resize(2 * numGaussians);
-        weightsVmm.resize(2 * numGaussians);
+        weightsVomp.resize(2 * numGaussians);
 
         int validDiagCtr = 0;
         for (int i = 0; i < numGaussians; ++i)
@@ -250,8 +250,8 @@ namespace dsd
                 kappas[2 * i] = 0;
                 musVonMises[2 * i + 1] = Vector3::Zero();
                 kappas[2 * i + 1] = kappas[2 * i];
-                weightsVmm[2 * i] = 0;
-                weightsVmm[2 * i + 1] = 0;
+                weightsVomp[2 * i] = 0;
+                weightsVomp[2 * i + 1] = 0;
                 continue;
             }
             auto eigvals = eigvalsMat.diagonal();
@@ -280,32 +280,32 @@ namespace dsd
 
             musVonMises[2 * i + 1] = -eigvecs.col(minIdx);
             kappas[2 * i + 1] = kappas[2 * i];
-            weightsVmm[2 * i] = weights[i];
-            weightsVmm[2 * i + 1] = weights[i];
+            weightsVomp[2 * i] = weights[i];
+            weightsVomp[2 * i + 1] = weights[i];
 
             // ROFL_VAR3(i, phis[i], kappas[i]);
         }
         // ROFL_ASSERT(0)
         ROFL_VAR1(numGaussians)
-        vonMisesMixture3d(vmm, nSamples, musVonMises, kappas, weightsVmm, szPadded);
+        vonMisesMixture3d(vomp, nSamples, musVonMises, kappas, weightsVomp, szPadded);
     }
 
-    void fvmMax(std::vector<int> &maximaIdx,
-                std::vector<double> &maximaValues,
-                std::vector<std::pair<double, double>> &thetaPhiMaxima,
-                const std::vector<double> &vmm,
-                int nSamples,
-                double angleWin,
-                int findPeaksWindow)
+    void vompMax(std::vector<int> &maximaIdx,
+                 std::vector<double> &maximaValues,
+                 std::vector<std::pair<double, double>> &thetaPhiMaxima,
+                 const std::vector<double> &vomp,
+                 int nSamples,
+                 double angleWin,
+                 int findPeaksWindow)
     {
         // TODO: improve I/O (very inefficient atm)
 
-        Eigen::MatrixXd vmmM(2 * nSamples, nSamples);
-        for (int itheta = 0; itheta < vmmM.cols(); ++itheta)
-            for (int iphi = 0; iphi < vmmM.rows(); ++iphi)
+        Eigen::MatrixXd vompM(2 * nSamples, nSamples);
+        for (int itheta = 0; itheta < vompM.cols(); ++itheta)
+            for (int iphi = 0; iphi < vompM.rows(); ++iphi)
             {
                 int idx = itheta * nSamples + iphi;
-                vmmM(iphi, itheta) = vmm[idx];
+                vompM(iphi, itheta) = vomp[idx];
             }
 
         int neighborhoodSz = 2; // l start
@@ -320,7 +320,7 @@ namespace dsd
         while (numMaxima > 0.1 * totGridSz && !multipleFpmMaxima)
         {
             ROFL_VAR2("Running fpm with l neighborhoodSz", neighborhoodSz)
-            FPM fpm(vmmM, neighborhoodSz); // TODO: growing window size
+            FPM fpm(vompM, neighborhoodSz); // TODO: growing window size
             fpm.run();
             multipleFpmMaxima = fpm.multipleMaxima_;
             maximaMat = fpm.getIndicesMax();
@@ -329,19 +329,19 @@ namespace dsd
             numMaxima = maximaMat.sum();
         }
 
-        // ROFL_VAR1(vmmM)
+        // ROFL_VAR1(vompM)
         // ROFL_VAR1(maximaMat)
 
         maximaIdx.clear();
-        maximaIdx.resize(vmm.size(), 0);
+        maximaIdx.resize(vomp.size(), 0);
 
         double dtheta = M_PI / nSamples;
 
-        for (int itheta = 0; itheta < vmmM.cols(); ++itheta)
+        for (int itheta = 0; itheta < vompM.cols(); ++itheta)
         {
             double theta = dtheta * itheta;
 
-            for (int iphi = 0; iphi < vmmM.rows(); ++iphi)
+            for (int iphi = 0; iphi < vompM.rows(); ++iphi)
             {
                 int idx = itheta * nSamples + iphi;
                 auto mPhiTheta = maximaMat(iphi, itheta);
@@ -351,7 +351,7 @@ namespace dsd
                 {
                     double phi = dtheta * iphi;
                     thetaPhiMaxima.push_back(std::pair<double, double>(theta, phi));
-                    maximaValues.push_back(vmm[idx]);
+                    maximaValues.push_back(vomp[idx]);
                 }
             }
         }

@@ -17,11 +17,12 @@
 #include <dsd_utils.h>
 #include <fim3d.h>
 
-void convertEigenToPcl(const dsd::VectorVector3& points,
+void convertEigenToPcl(const dsd::VectorVector3 &points,
                        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
                        pcl::PointCloud<pcl::Normal>::Ptr cloudNormals);
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     std::string filenameCfg, filePath;
     std::string folderInPath;
     std::set<fs::path> sortedByName;
@@ -53,21 +54,29 @@ int main(int argc, char** argv) {
                                  "../results_fim_3d/");
     params.getParam<std::string>("lidar", lidarTypeStr, "Velodyne");
 
-    std::cout << "-------\n" << std::endl;
+    std::cout << "-------\n"
+              << std::endl;
 
     std::cout << "Params:" << std::endl;
     params.write(std::cout);
 
-    if (lidarTypeStr == "Velodyne") {
+    if (lidarTypeStr == "Velodyne")
+    {
         ROFL_MSG("LIDAR Type: Velodyne");
         lidarType = BinReader::LidarType::VELODYNE;
-    } else if (lidarTypeStr == "Ouster") {
+    }
+    else if (lidarTypeStr == "Ouster")
+    {
         ROFL_MSG("LIDAR Type: Ouster");
         lidarType = BinReader::LidarType::OUSTER;
-    } else if (lidarTypeStr == "Livox") {
+    }
+    else if (lidarTypeStr == "Livox")
+    {
         ROFL_MSG("LIDAR Type: Livox");
         lidarType = BinReader::LidarType::LIVOX;
-    } else {
+    }
+    else
+    {
         ROFL_MSG("LIDAR Type: INVALID!\n  selected default type Velodyne");
         lidarType = BinReader::LidarType::VELODYNE;
     }
@@ -80,7 +89,8 @@ int main(int argc, char** argv) {
                                   dsd::Vector2(-3.0, 3.0),
                                   dsd::Vector2(-3.0, 3.0));
 
-    for (auto& entry : fs::directory_iterator(folderInPath)) {
+    for (auto &entry : fs::directory_iterator(folderInPath))
+    {
         sortedByName.insert(entry.path());
     }
 
@@ -100,7 +110,8 @@ int main(int argc, char** argv) {
     // Read files from the input directory
     int counter = 0;
     dsd::Matrix6 fim3D;
-    for (const auto& entry : sortedByName) {
+    for (const auto &entry : sortedByName)
+    {
         binReader.readCloudBin(entry.c_str(), lidarType);
 
         {
@@ -112,7 +123,8 @@ int main(int argc, char** argv) {
         Eigen::SelfAdjointEigenSolver<dsd::Matrix6> eigsolFim(fim3D);
         double eigMinFim = fabs(eigsolFim.eigenvalues()(0));
         double eigMaxFim = fabs(eigsolFim.eigenvalues()(5));
-        if (eigMinFim > eigMaxFim) {
+        if (eigMinFim > eigMaxFim)
+        {
             std::swap(eigMinFim, eigMaxFim);
         }
         // std::cout << "FIM\n"
@@ -138,7 +150,8 @@ int main(int argc, char** argv) {
         //         << (eigMaxFim / eigMinFim) << ", eigMin/eigMax "
         //         << (eigMinFim / eigMaxFim) << std::endl;
 
-        if (fileFim.is_open()) {
+        if (fileFim.is_open())
+        {
             fileFim << counter << ", " << entry.stem() << ", "
                     << eigsolFim.eigenvalues()(0) << ", "
                     << eigsolFim.eigenvalues()(1) << ", "
@@ -150,14 +163,17 @@ int main(int argc, char** argv) {
                     << (eigMinFim / eigMaxFim) << "\n";
             fileFim.flush();
             // fileFim.close();
-        } else {
+        }
+        else
+        {
             std::cerr << "fileFim NOT open" << std::endl;
             ROFL_ASSERT(0)
         }
 
         rofl::Profiler::getProfiler().printStats(std::cout);
         std::ofstream fileTime(filenameOutTime);
-        if (fileTime.is_open()) {
+        if (fileTime.is_open())
+        {
             rofl::Profiler::getProfiler().printStats(fileTime);
             fileTime.close();
         }
@@ -170,19 +186,22 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-void convertEigenToPcl(const dsd::VectorVector3& points,
+void convertEigenToPcl(const dsd::VectorVector3 &points,
                        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
-                       pcl::PointCloud<pcl::Normal>::Ptr cloudNormals) {
+                       pcl::PointCloud<pcl::Normal>::Ptr cloudNormals)
+{
     cloud->clear();
     cloudNormals->clear();
     pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
     pcl::PointXYZ pI;
 
     cloud->points.reserve(points.size());
-    for (int i = 0; i < points.size(); ++i) {
+    for (int i = 0; i < points.size(); ++i)
+    {
         // copy scan into PCL cloud (2D)
         if (std::isfinite(points[i](0)) && std::isfinite(points[i](1)) &&
-            std::isfinite(points[i](2))) {
+            std::isfinite(points[i](2)))
+        {
             pI.x = points[i](0);
             pI.y = points[i](1);
             pI.z = points[i](2);

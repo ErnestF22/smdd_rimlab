@@ -89,8 +89,8 @@ add_library(gmm_estim_lib
 add_executable(fim_ise_rtc_3d_results_interpreter app/fim_ise_rtc_3d_results_interpreter.cpp)
 target_link_libraries(fim_ise_rtc_3d_results_interpreter rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
 
-add_executable(fvm3d_results_interpreter app/fvm3d_results_interpreter.cpp)
-target_link_libraries(fvm3d_results_interpreter rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
+add_executable(vomp3d_results_interpreter app/vomp3d_results_interpreter.cpp)
+target_link_libraries(vomp3d_results_interpreter rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
 
 add_executable(run_fim_2d app/run_fim_2d.cpp)
 target_link_libraries(run_fim_2d rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
@@ -98,15 +98,15 @@ target_link_libraries(run_fim_2d rofl_common boost_filesystem boost_system gmm_e
 add_executable(run_fim_3d app/run_fim_3d.cpp)
 target_link_libraries(run_fim_3d rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
 
-add_executable(run_fvm_cuda_full app/run_fvm_cuda_full.cu)
-target_link_libraries(run_fvm_cuda_full rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
+add_executable(run_vomp_cuda app/run_vomp_cuda.cu)
+target_link_libraries(run_vomp_cuda rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
 
-# target_compile_features(run_fvm_cuda_full PUBLIC cxx_std_17)
-set_target_properties(run_fvm_cuda_full PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(run_fvm_cuda_full PROPERTIES CUDA_ARCHITECTURES "86")
+# target_compile_features(run_vomp_cuda PUBLIC cxx_std_17)
+set_target_properties(run_vomp_cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(run_vomp_cuda PROPERTIES CUDA_ARCHITECTURES "86")
 
-add_executable(run_fvm app/run_fvm.cpp)
-target_link_libraries(run_fvm rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
+add_executable(run_vomp app/run_vomp.cpp)
+target_link_libraries(run_vomp rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
 
 add_executable(run_hessian_ise_rtc app/run_hessian_ise_rtc.cpp)
 target_link_libraries(run_hessian_ise_rtc rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
@@ -125,22 +125,15 @@ target_link_libraries(create_degenerate_scan rofl_common boost_filesystem boost_
 add_executable(estimate_pair_hessian_ise_rtc test/estimate_pair_hessian_ise_rtc.cpp)
 target_link_libraries(estimate_pair_hessian_ise_rtc rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
 
-add_executable(test_fvm_cuda_full test/test_fvm_cuda_full.cu)
-target_link_libraries(test_fvm_cuda_full rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
+add_executable(test_vomp_cuda test/test_vomp_cuda.cu)
+target_link_libraries(test_vomp_cuda rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
 
-# target_compile_features(test_fvm_cuda_full PUBLIC cxx_std_17)
-set_target_properties(test_fvm_cuda_full PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(test_fvm_cuda_full PROPERTIES CUDA_ARCHITECTURES "86")
+# target_compile_features(test_vomp_cuda PUBLIC cxx_std_17)
+set_target_properties(test_vomp_cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(test_vomp_cuda PROPERTIES CUDA_ARCHITECTURES "86")
 
-add_executable(test_fvm_cuda test/test_fvm_cuda.cu)
-target_link_libraries(test_fvm_cuda rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
-
-# target_compile_features(test_fvm_cuda PUBLIC cxx_std_17)
-set_target_properties(test_fvm_cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(test_fvm_cuda PROPERTIES CUDA_ARCHITECTURES "86")
-
-add_executable(test_fvm test/test_fvm.cpp)
-target_link_libraries(test_fvm rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
+add_executable(test_vomp test/test_vomp.cpp)
+target_link_libraries(test_vomp rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
 
 add_executable(test_gaussian_estimator_3d test/test_gaussian_estimator_3d.cpp)
 target_link_libraries(test_gaussian_estimator_3d gmm_estim_lib rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})

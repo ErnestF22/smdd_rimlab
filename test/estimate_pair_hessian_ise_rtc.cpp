@@ -17,7 +17,8 @@
 #include <dsd_utils.h>
 #include <gme_gaussian_metric.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     std::string filenameCfg, filePath;
     std::string folderInPath, filenameOutIse, filenameOutRtc;
     std::set<fs::path> sortedByName;
@@ -42,7 +43,8 @@ int main(int argc, char** argv) {
                                  std::string("rtc.csv"));
     params.getParam<double>("sigmaIn", sigmaIn, 0.05);
 
-    std::cout << "-------\n" << std::endl;
+    std::cout << "-------\n"
+              << std::endl;
 
     std::cout << "Params:" << std::endl;
     params.write(std::cout);
@@ -52,34 +54,38 @@ int main(int argc, char** argv) {
     std::ofstream fileRtc(filenameOutRtc);
     ROFL_ASSERT(fileRtc);
 
-    for (auto& entry : fs::directory_iterator(folderInPath))
+    for (auto &entry : fs::directory_iterator(folderInPath))
         sortedByName.insert(entry.path());
 
     int counter = 0;
     musSrc.clear();
     sigmasSrc.clear();
     weightsSrc.clear();
-    for (const auto& entry : sortedByName) {
+    for (const auto &entry : sortedByName)
+    {
         // Reads the CSV file containing the point coordinates
-        std::cout << "\n-----\n" << counter << " " << entry.stem() << std::endl;
+        std::cout << "\n-----\n"
+                  << counter << " " << entry.stem() << std::endl;
         CsvScan csvScanMain;
         readCsvScan(entry.c_str(), csvScanMain);
 
         // Reads the scan, filters the invalid points or those belonging to the
         // Vehicle, fills the vector of points/mean values muIn
         musDst.clear();
-        for (int i = 0; i < csvScanMain.pts.size(); ++i) {
+        for (int i = 0; i < csvScanMain.pts.size(); ++i)
+        {
             // copy scan into PCL cloud (2D)
             if (std::isfinite(csvScanMain.pts[i](0)) &&
-                std::isfinite(csvScanMain.pts[i](1))) {
-                Eigen::Vector2d pIVehicleCoord;  // pI in Vehicle coordinates;
-                Eigen::Vector2d pIEig;       // pI in Eigen
+                std::isfinite(csvScanMain.pts[i](1)))
+            {
+                Eigen::Vector2d pIVehicleCoord; // pI in Vehicle coordinates;
+                Eigen::Vector2d pIEig;          // pI in Eigen
                 pIEig << csvScanMain.pts[i](0), csvScanMain.pts[i](1);
-                pIVehicleCoord = pIEig;  // initializing it here with no real
-                                     // purpose laserToVehicle(pIEig, pIVehicleCoord,
-                                     // laser2VehicleX, laser2VehicleY, laser2VehicleT); if
-                                     // (pI.getVector3fMap().norm() < fimRange
-                                     // && !dsd::isVehicleShapePt(pIVehicleCoord))
+                pIVehicleCoord = pIEig; // initializing it here with no real
+                                        // purpose laserToVehicle(pIEig, pIVehicleCoord,
+                                        // laser2VehicleX, laser2VehicleY, laser2VehicleT); if
+                                        // (pI.getVector3fMap().norm() < fimRange
+                                        // && !dsd::isVehicleShapePt(pIVehicleCoord))
                 // ROFL_VAR1(pIEig.transpose());
 
                 if (dsd::isVehicleShapePt(pIEig))
@@ -97,7 +103,8 @@ int main(int argc, char** argv) {
         std::fill(weightsDst.begin(), weightsDst.end(), 1.0 / n);
         ROFL_VAR3(musDst.size(), sigmasDst.size(), weightsDst.size());
 
-        if (!musSrc.empty()) {
+        if (!musSrc.empty())
+        {
             dsd::Vector3 gradIse, gradRtc;
             dsd::Matrix3 hessianIse, hessianRtc;
             dsd::Transform2 transformSrcDst;
@@ -118,7 +125,8 @@ int main(int argc, char** argv) {
             Eigen::SelfAdjointEigenSolver<dsd::Matrix3> eigsolIse(hessianIse);
             double eigMinIse = fabs(eigsolIse.eigenvalues()(0));
             double eigMaxIse = fabs(eigsolIse.eigenvalues()(2));
-            if (eigMaxIse < eigMinIse) {
+            if (eigMaxIse < eigMinIse)
+            {
                 std::swap(eigMinIse, eigMaxIse);
             }
             std::cout << "ISE gradient: " << gradIse.transpose() << "\n"
@@ -136,7 +144,8 @@ int main(int argc, char** argv) {
             Eigen::SelfAdjointEigenSolver<dsd::Matrix3> eigsolRtc(hessianRtc);
             double eigMinRtc = fabs(eigsolRtc.eigenvalues()(0));
             double eigMaxRtc = fabs(eigsolRtc.eigenvalues()(2));
-            if (eigMaxRtc < eigMinRtc) {
+            if (eigMaxRtc < eigMinRtc)
+            {
                 std::swap(eigMinRtc, eigMaxRtc);
             }
             std::cout << "RTC gradient: " << gradRtc.transpose() << "\n"

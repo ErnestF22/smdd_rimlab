@@ -17,22 +17,23 @@
 using PointT = pcl::PointXYZ;
 using PointCloudT = pcl::PointCloud<PointT>;
 
-void readScanCsv(const std::string& filename, dsd::VectorVector2& points);
+void readScanCsv(const std::string &filename, dsd::VectorVector2 &points);
 
-void convertToGmm(const dsd::VectorVector2& points,
+void convertToGmm(const dsd::VectorVector2 &points,
                   gme::IsotropicGaussianMixtureModel2::Ptr gmm,
                   double angleSigma);
 
 void convertToPcl(const dsd::VectorVector2 points,
                   PointCloudT::Ptr cloud,
-                  const dsd::Transform2& transf);
+                  const dsd::Transform2 &transf);
 
 void plotGmm(pcl::visualization::PCLVisualizer::Ptr viewer,
              gme::IsotropicGaussianMixtureModel2::Ptr gmm,
-             const dsd::Transform2& transf,
+             const dsd::Transform2 &transf,
              std::string cloudLabel);
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     std::string filenameCfg, filenameSrc, filenameDst;
     dsd::VectorVector2 pointsSrc, pointsDst;
     gme::IsotropicGaussianMixtureModel2::Ptr gmmSrc(
@@ -55,7 +56,8 @@ int main(int argc, char** argv) {
         "dst", filenameDst, std::string("csv/degenere1/degenere1_000101.csv"));
     params.getParam<double>("angleSigma", angleSigma, 0.017453);
 
-    std::cout << "-------\n" << std::endl;
+    std::cout << "-------\n"
+              << std::endl;
 
     std::cout << "Params:" << std::endl;
     params.write(std::cout);
@@ -91,7 +93,8 @@ int main(int argc, char** argv) {
 
     transf = dsd::Transform2::Identity();
     gmmIse.init();
-    for (int iter = 0; iter < 50; ++iter) {
+    for (int iter = 0; iter < 50; ++iter)
+    {
         std::cout << "\n---\niteration " << iter << std::endl;
         gmmIse.iterateOnce();
 
@@ -112,32 +115,36 @@ int main(int argc, char** argv) {
         std::this_thread::sleep_for(10ms);
     }
 
-    while (!viewer->wasStopped()) {
+    while (!viewer->wasStopped())
+    {
         viewer->spinOnce(100);
         std::this_thread::sleep_for(100ms);
     }
     return 0;
 }
 
-void readScanCsv(const std::string& filename, dsd::VectorVector2& points) {
+void readScanCsv(const std::string &filename, dsd::VectorVector2 &points)
+{
     CsvScan csvScanMain;
     readCsvScan(filename, csvScanMain);
 
     // Reads the scan, filters the invalid points or those belonging to the
     // Vehicle, fills the vector of points/mean values muIn
     points.clear();
-    for (int i = 0; i < csvScanMain.pts.size(); ++i) {
+    for (int i = 0; i < csvScanMain.pts.size(); ++i)
+    {
         // copy scan into PCL cloud (2D)
         if (std::isfinite(csvScanMain.pts[i](0)) &&
-            std::isfinite(csvScanMain.pts[i](1))) {
-            Eigen::Vector2d pIVehicleCoord;  // pI in Vehicle coordinates;
-            Eigen::Vector2d pIEig;       // pI in Eigen
+            std::isfinite(csvScanMain.pts[i](1)))
+        {
+            Eigen::Vector2d pIVehicleCoord; // pI in Vehicle coordinates;
+            Eigen::Vector2d pIEig;          // pI in Eigen
             pIEig << csvScanMain.pts[i](0), csvScanMain.pts[i](1);
-            pIVehicleCoord = pIEig;  // initializing it here with no real
-                                 // purpose laserToVehicle(pIEig, pIVehicleCoord,
-                                 // laser2VehicleX, laser2VehicleY, laser2VehicleT); if
-                                 // (pI.getVector3fMap().norm() < fimRange
-                                 // && !dsd::isVehicleShapePt(pIVehicleCoord))
+            pIVehicleCoord = pIEig; // initializing it here with no real
+                                    // purpose laserToVehicle(pIEig, pIVehicleCoord,
+                                    // laser2VehicleX, laser2VehicleY, laser2VehicleT); if
+                                    // (pI.getVector3fMap().norm() < fimRange
+                                    // && !dsd::isVehicleShapePt(pIVehicleCoord))
             // ROFL_VAR1(pIEig.transpose());
 
             if (dsd::isVehicleShapePt(pIEig))
@@ -148,13 +155,15 @@ void readScanCsv(const std::string& filename, dsd::VectorVector2& points) {
     }
 }
 
-void convertToGmm(const dsd::VectorVector2& points,
+void convertToGmm(const dsd::VectorVector2 &points,
                   gme::IsotropicGaussianMixtureModel2::Ptr gmm,
-                  double angleSigma) {
+                  double angleSigma)
+{
     size_t n = points.size();
     gme::IsotropicGaussianMixtureModel2::VectorScalar sigmas(n);
     gme::IsotropicGaussianMixtureModel2::VectorScalar weights(n, 1.0 / n);
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i)
+    {
         sigmas[i] = angleSigma * points[i].norm();
         ROFL_VAR3(angleSigma, points[i].norm(), sigmas[i]);
     }
@@ -163,13 +172,16 @@ void convertToGmm(const dsd::VectorVector2& points,
 
 void convertToPcl(const dsd::VectorVector2 points,
                   PointCloudT::Ptr cloud,
-                  const dsd::Transform2& transf) {
+                  const dsd::Transform2 &transf)
+{
     PointT p;
-    if (cloud.get() == nullptr) {
+    if (cloud.get() == nullptr)
+    {
         cloud.reset(new PointCloudT);
     }
     cloud->resize(points.size());
-    for (int i = 0; i < points.size(); ++i) {
+    for (int i = 0; i < points.size(); ++i)
+    {
         dsd::Vector2 ptrans = transf * points[i];
         cloud->points[i].x = ptrans(0);
         cloud->points[i].y = ptrans(1);
@@ -179,13 +191,14 @@ void convertToPcl(const dsd::VectorVector2 points,
 
 void plotGmm(pcl::visualization::PCLVisualizer::Ptr viewer,
              gme::IsotropicGaussianMixtureModel2::Ptr gmm,
-             const dsd::Transform2& transf,
-             std::string cloudLabel) {
+             const dsd::Transform2 &transf,
+             std::string cloudLabel)
+{
     PointCloudT::Ptr cloud(new PointCloudT);
     convertToPcl(gmm->means(), cloud, transf);
 
     dsd::plotEllipsesArrows(viewer, gmm->means(), gmm->getCovariances(),
-                       gmm->weights());
+                            gmm->weights());
 
     viewer->addPointCloud<pcl::PointXYZ>(cloud, cloudLabel);
     viewer->setPointCloudRenderingProperties(

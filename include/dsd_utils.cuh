@@ -20,7 +20,7 @@
 
 #include <thrust/host_vector.h>
 
-// void vonMisesStats3d(std::vector<double> &vmm,
+// void vonMisesStats3d(std::vector<double> &vomp,
 //                      int nSamples,
 //                      const VectorVector3 &mus,
 //                      const VectorMatrix3 &sigmas,
@@ -28,13 +28,13 @@
 // {
 //     VectorVector3 musVonMises;
 //     std::vector<double> kappas;
-//     std::vector<double> weightsVmm;
+//     std::vector<double> weightsVomp;
 //     double phiTmp;
 
 //     size_t numGaussians = mus.size();
 //     musVonMises.resize(2 * numGaussians);
 //     kappas.resize(2 * numGaussians);
-//     weightsVmm.resize(2 * numGaussians);
+//     weightsVomp.resize(2 * numGaussians);
 
 //     int validDiagCtr = 0;
 //     for (int i = 0; i < numGaussians; ++i)
@@ -48,8 +48,8 @@
 //             kappas[2 * i] = 0;
 //             musVonMises[2 * i + 1] = Vector3::Zero();
 //             kappas[2 * i + 1] = kappas[2 * i];
-//             weightsVmm[2 * i] = 0;
-//             weightsVmm[2 * i + 1] = 0;
+//             weightsVomp[2 * i] = 0;
+//             weightsVomp[2 * i + 1] = 0;
 //             continue;
 //         }
 //         auto eigvals = eigvalsMat.diagonal();
@@ -78,14 +78,14 @@
 
 //         musVonMises[2 * i + 1] = -eigvecs.col(minIdx);
 //         kappas[2 * i + 1] = kappas[2 * i];
-//         weightsVmm[2 * i] = weights[i];
-//         weightsVmm[2 * i + 1] = weights[i];
+//         weightsVomp[2 * i] = weights[i];
+//         weightsVomp[2 * i + 1] = weights[i];
 
 //         // ROFL_VAR3(i, phis[i], kappas[i]);
 //     }
 //     // ROFL_ASSERT(0)
 //     ROFL_VAR1(numGaussians)
-//     vonMisesMixture3d(vmm, nSamples, musVonMises, kappas, weightsVmm);
+//     vonMisesMixture3d(vomp, nSamples, musVonMises, kappas, weightsVomp);
 // }
 
 __device__ double vonMisesFisherDevice(const double3 x, const double3 mu, const double k)
@@ -97,13 +97,13 @@ __device__ double vonMisesFisherDevice(const double3 x, const double3 mu, const 
     return c3k * e;
 }
 
-// void vonMisesMixture3d(std::vector<double> &vmm,
+// void vonMisesMixture3d(std::vector<double> &vomp,
 //                        int nSamples,
 //                        const std::vector<Vector3> &mu,
 //                        const std::vector<double> &k,
 //                        const std::vector<double> &w)
-__global__ void vmm3d_kernel(double *vmm, int nSamples, //!! mu size needs to be 3 times the size of k, w
-                             const double3 *mu, const double *k, const int mukwSz)
+__global__ void vomp3d_kernel(double *vomp, int nSamples, //!! mu size needs to be 3 times the size of k, w
+                              const double3 *mu, const double *k, const int mukwSz)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     // int stride = blockDim.x * gridDim.x;
@@ -136,7 +136,7 @@ __global__ void vmm3d_kernel(double *vmm, int nSamples, //!! mu size needs to be
     // double dtheta = M_PI / nSamples;
     double dtheta = M_PI / nSamples;
 
-    // int vmmSz = nSamples * (2 * nSamples);
+    // int vompSz = nSamples * (2 * nSamples);
 
     // for
     double theta = dtheta * jTheta;
@@ -157,23 +157,23 @@ __global__ void vmm3d_kernel(double *vmm, int nSamples, //!! mu size needs to be
     {
         // printf("index %d \t i %d \t j %d \t jTheta %d \t jPhi %d \t theta %f \t phi %f \t vmf %f\n",
         //     index, i, j, jTheta, jPhi, theta, phi, vmf);
-        vmm[index] = vmf;
+        vomp[index] = vmf;
         // printf("vmf %f\n", vmf);
     }
     else
     {
-        vmm[index] = 0.0; // TODO: avoid this else -> cudaMemset() before calling kernel?
+        vomp[index] = 0.0; // TODO: avoid this else -> cudaMemset() before calling kernel?
         // printf("vmf NOT FINITE!\n");
     }
 
     // if (std::isfinite(vmf))
     // {
-    //     vmm[j] += w[i] * vmf;
+    //     vomp[j] += w[i] * vmf;
     // }
 }
 
-__global__ void vmm3d_summation_kernel(double *vmm, int nSamples, //!! mu size needs to be 3 times the size of k, w
-                                       const double *vmmAll, const double *w, const int mukwSz)
+__global__ void vomp3d_summation_kernel(double *vomp, int nSamples, //!! mu size needs to be 3 times the size of k, w
+                                        const double *vompAll, const double *w, const int mukwSz)
 {
     int jndex = blockIdx.x * blockDim.x + threadIdx.x; //=blockIdx.x
     // int stride = blockDim.x * gridDim.x;
@@ -191,15 +191,15 @@ __global__ void vmm3d_summation_kernel(double *vmm, int nSamples, //!! mu size n
     for (int mukw = jndexStart; mukw < jndexStart + mukwSz; ++mukw)
     {
         // int iAll = jndex + numCols * mukw;
-        double vmmij = vmmAll[mukw];
-        vmm[jndex] += w[mukw - jndexStart] * vmmij;
+        double vompij = vompAll[mukw];
+        vomp[jndex] += w[mukw - jndexStart] * vompij;
     }
 }
 
 // int numCols = 2 * nSamples * nSamples;
 // int sizePhis = 2 * nSamples; // TODO: this can maybe be passed directly
 // int sizeThetas = nSamples;   // TODO: this can maybe be passed directly
-// for (int idx = 0; idx < totalVmmSz; ++idx)
+// for (int idx = 0; idx < totalVompSz; ++idx)
 // {
 //     int i = idx % mukwSz;
 //     int j = (idx - i) / mukwSz;
@@ -218,7 +218,7 @@ __global__ void vmm3d_summation_kernel(double *vmm, int nSamples, //!! mu size n
 //     // double dtheta = M_PI / nSamples;
 //     // double dtheta = M_PI / nSamples;
 
-//     // int vmmSz = nSamples * (2 * nSamples);
+//     // int vompSz = nSamples * (2 * nSamples);
 
 //     // for
 //     // double theta = dtheta * jTheta;
@@ -231,8 +231,8 @@ __global__ void vmm3d_summation_kernel(double *vmm, int nSamples, //!! mu size n
 //     // // double dtheta = M_PI / nSamples;
 //     // double dtheta = M_PI / nSamples;
 
-//     // int vmmSz = nSamples * (2 * nSamples);
-//     // int vmmSz = nSamples * (2 * nSamples);
+//     // int vompSz = nSamples * (2 * nSamples);
+//     // int vompSz = nSamples * (2 * nSamples);
 
 //     // for
 //     // double theta = dtheta * jTheta;
@@ -248,10 +248,10 @@ __global__ void vmm3d_summation_kernel(double *vmm, int nSamples, //!! mu size n
 //     // xThetaPhi.y = st * sp;
 //     // xThetaPhi.z = ct;
 
-//     double vmmHidx = vmmHost[idx];
-//     // ROFL_VAR4(idx, i, j, vmmHidx);
-//     if (std::isfinite(vmmHidx))
-//         vmm[j] += weightsVmm[i] * vmmHidx;
+//     double vompHidx = vompHost[idx];
+//     // ROFL_VAR4(idx, i, j, vompHidx);
+//     if (std::isfinite(vompHidx))
+//         vomp[j] += weightsVomp[i] * vompHidx;
 // }
 
 #endif /*DSD_UTILS_CUH_*/

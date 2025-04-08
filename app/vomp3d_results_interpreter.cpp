@@ -45,8 +45,8 @@ int main(int argc, char **argv)
     params.getParam<std::string>("cfg", filenameCfg, std::string(""));
     params.read(filenameCfg);
     params.read(argc, argv);
-    // params.getParam<std::string>("in", folderInPath, "/home/rimlab/rclone/dsd_paper_results/results_fvm3d/20250214_1511_55_Urban_Tunnel01/1693022008.716670513.out");
-    params.getParam<std::string>("in", folderInPath, "../results_fvm3d/20250214_1511_55_Urban_Tunnel01/");
+    // params.getParam<std::string>("in", folderInPath, "/home/rimlab/rclone/dsd_paper_results/results_vomp3d/20250214_1511_55_Urban_Tunnel01/1693022008.716670513.out");
+    params.getParam<std::string>("in", folderInPath, "../results_vomp3d/20250214_1511_55_Urban_Tunnel01/");
     params.getParam<std::string>("gnuplotBasePath", gnuplotBasePath, "../gnuplot/");
 
     std::cout << "Params:" << std::endl;

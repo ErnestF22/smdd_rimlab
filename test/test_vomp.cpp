@@ -69,8 +69,6 @@ int main(int argc, char **argv)
 
     params.adaptTildeInPaths();
 
-
-
     std::cout << "Params:" << std::endl;
     params.write(std::cout);
 
@@ -174,7 +172,7 @@ int main(int argc, char **argv)
         dsd::plotEllipsesArrows3d(viewer, musOut, sigmasOut, weightsOut);
 
     //
-    std::vector<double> vmm;
+    std::vector<double> vomp;
     double maxVal, minVal;
     // musOut.erase(musOut.begin() + 1, musOut.end());
     // sigmasOut.erase(sigmasOut.begin() + 1, sigmasOut.end());
@@ -183,18 +181,18 @@ int main(int argc, char **argv)
     ROFL_VAR1("von Mises stats")
     {
         rofl::ScopedTimer vonMisesStats("von Mises stats");
-        dsd::vonMisesStats3d(vmm, nSamples, musOut, sigmasOut, weightsOut, szPadded);
+        dsd::vonMisesStats3d(vomp, nSamples, musOut, sigmasOut, weightsOut, szPadded);
         execTimeI += vonMisesStats.elapsedTimeMs();
         ROFL_VAR1(vonMisesStats.elapsedTimeMs());
     }
     rofl::Profiler::getProfiler().printStats(std::cout);
 
-    //plot von Mises mixture vector(matrix)
+    // plot von Mises mixture vector(matrix)
     double dtheta = M_PI / nSamples;
 
     int sizePhis = 2 * nSamples;
     int sizeThetas = nSamples;
-    Eigen::MatrixXd vmmEigenMat(sizePhis, sizeThetas);
+    Eigen::MatrixXd vompEigenMat(sizePhis, sizeThetas);
     for (int jTheta = 0; jTheta < sizeThetas; ++jTheta)
     {
         // double theta = dtheta * jTheta;
@@ -203,33 +201,33 @@ int main(int argc, char **argv)
         {
             // int j = jTheta * sizePhis + jPhi;
             // double phi = dtheta * jPhi;
-            vmmEigenMat(jPhi, jTheta) = vmm[jTheta * sizePhis + jPhi];
+            vompEigenMat(jPhi, jTheta) = vomp[jTheta * sizePhis + jPhi];
         }
     }
-    std::ofstream fileOutVmm("vmm.csv");
-    fileOutVmm << vmmEigenMat << std::endl;
-    fileOutVmm.close();
+    std::ofstream fileOutVomp("vomp.csv");
+    fileOutVomp << vompEigenMat << std::endl;
+    fileOutVomp.close();
 
     viewer->setPointCloudRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "cloud");
     viewer->setPointCloudRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_COLOR, 0.05, 0.05, 0.05, "cloud");
 
-    // for (size_t i = 0; i < vmm.size(); ++i)
+    // for (size_t i = 0; i < vomp.size(); ++i)
     // {
-    // ROFL_VAR3(i, 360.0 * i / nSamples, vmm[i]);
+    // ROFL_VAR3(i, 360.0 * i / nSamples, vomp[i]);
     // }
-    maxVal = vmm.empty() ? -1 : *std::max_element(vmm.begin(), vmm.end());
-    minVal = vmm.empty() ? -1 : *std::min_element(vmm.begin(), vmm.end());
-    int maxId = vmm.empty()
+    maxVal = vomp.empty() ? -1 : *std::max_element(vomp.begin(), vomp.end());
+    minVal = vomp.empty() ? -1 : *std::min_element(vomp.begin(), vomp.end());
+    int maxId = vomp.empty()
                     ? -1
-                    : std::distance(vmm.begin(),
-                                    std::max_element(vmm.begin(), vmm.end()));
+                    : std::distance(vomp.begin(),
+                                    std::max_element(vomp.begin(), vomp.end()));
 
     ROFL_VAR3(maxId, minVal, maxVal);
 
     int i = 0;
-    for (auto &v : vmm)
+    for (auto &v : vomp)
     {
         ROFL_VAR2(i, v)
         ++i;
@@ -238,18 +236,18 @@ int main(int argc, char **argv)
     /**
      * Plot VMM distribution values
      */
-    // dsd::plotVmm(vmm, minVal, maxVal, viewer);
+    // dsd::plotVomp(vomp, minVal, maxVal, viewer);
 
     /**
      * Find peaks of VMM
      */
     ROFL_VAR1("von Mises max")
-    std::vector<int> vmmMaxima;
+    std::vector<int> vompMaxima;
     std::vector<std::pair<double, double>> thetaPhiMaxima;
     std::vector<double> maximaValues;
     {
         rofl::ScopedTimer vonMisesMax("von Mises max");
-        dsd::fvmMax(vmmMaxima, maximaValues, thetaPhiMaxima, vmm, nSamples, angleWin);
+        dsd::vompMax(vompMaxima, maximaValues, thetaPhiMaxima, vomp, nSamples, angleWin);
         execTimeI += vonMisesMax.elapsedTimeMs();
         ROFL_VAR1(vonMisesMax.elapsedTimeMs());
     }

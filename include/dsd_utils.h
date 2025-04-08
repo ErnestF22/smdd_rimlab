@@ -144,13 +144,13 @@ namespace dsd
     /**
      * @brief Compute von Mises distribution on a GMM
      */
-    void vonMisesMixture(std::vector<double> &vmm,
+    void vonMisesMixture(std::vector<double> &vomp,
                          int n,
                          const std::vector<double> &mu,
                          const std::vector<double> &k,
                          const std::vector<double> &w);
 
-    void vonMisesMixture3d(std::vector<double> &vmm,
+    void vonMisesMixture3d(std::vector<double> &vomp,
                            int nSamples,
                            const std::vector<Vector3> &mu,
                            const std::vector<double> &k,
@@ -159,10 +159,10 @@ namespace dsd
 
     /**
      * @brief Evaluate von Mises distribution with params @param mus, @param sigmas,
-     * @param weights saving computed values in @param vmm which contains @param n
+     * @param weights saving computed values in @param vomp which contains @param n
      * angles sample windows
      */
-    void vonMisesStats(std::vector<double> &vmm,
+    void vonMisesStats(std::vector<double> &vomp,
                        int n,
                        const VectorVector2 &mus,
                        const VectorMatrix2 &sigmas,
@@ -173,13 +173,13 @@ namespace dsd
      */
     void vonMisesStats3dCuda(VectorVector3 &musVonMises,
                              std::vector<double> &kappas,
-                             std::vector<double> &weightsVmm,
+                             std::vector<double> &weightsVomp,
                              int szPadded,
                              const VectorVector3 &mus,
                              const VectorMatrix3 &sigmas,
                              const std::vector<double> &weights);
 
-    void vonMisesStats3d(std::vector<double> &vmm,
+    void vonMisesStats3d(std::vector<double> &vomp,
                          int nSamples,
                          const VectorVector3 &mus,
                          const VectorMatrix3 &sigmas,
@@ -187,22 +187,22 @@ namespace dsd
                          int szPadded);
 
     /**
-     * @brief Compute maxima of @param vmm
+     * @brief Compute maxima of @param vomp
      * returning them in @param maximaIdx;
      * @param angleWin is the peakFinder's window
      */
     void vonMisesMax(std::vector<int> &maximaIdx,
-                     const std::vector<double> &vmm,
+                     const std::vector<double> &vomp,
                      double angleWin,
                      int findPeaksWindow = 0);
 
-    void fvmMax(std::vector<int> &maximaIdx,
-                std::vector<double> &maximaValues,
-                std::vector<std::pair<double, double>> &thetaPhiMaxima,
-                const std::vector<double> &vmm,
-                int nSamples,
-                double angleWin,
-                int findPeaksWindow = 0);
+    void vompMax(std::vector<int> &maximaIdx,
+                 std::vector<double> &maximaValues,
+                 std::vector<std::pair<double, double>> &thetaPhiMaxima,
+                 const std::vector<double> &vomp,
+                 int nSamples,
+                 double angleWin,
+                 int findPeaksWindow = 0);
 
     /**
      * @brief Returns whether two floating point numbers are equal up to a threshold
@@ -327,15 +327,15 @@ namespace dsd
                               dsd::SaveCsvOptions saveOutput = dsd::SaveCsvOptions());
 
     /**
-     * @brief Plot vmm distribution values (eight-shape when degenerate, shuriken
+     * @brief Plot vomp distribution values (eight-shape when degenerate, shuriken
      * otherwise) as a weighted (color-wise and distance-from-center-wise) set of
      * circles
      */
-    void plotVmm(const std::vector<double> &vmm,
-                 double vmmMin,
-                 double vmmMax,
-                 pcl::visualization::PCLVisualizer::Ptr viewer,
-                 dsd::SaveCsvOptions saveOutput = dsd::SaveCsvOptions());
+    void plotVomp(const std::vector<double> &vomp,
+                  double vompMin,
+                  double vompMax,
+                  pcl::visualization::PCLVisualizer::Ptr viewer,
+                  dsd::SaveCsvOptions saveOutput = dsd::SaveCsvOptions());
 
     /**
      * Convert Velodyne point cloud from bin (GEODE dataset) format to PCL

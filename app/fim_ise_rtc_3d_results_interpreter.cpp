@@ -12,7 +12,8 @@
 
 namespace fs = std::filesystem;
 
-struct Line {
+struct Line
+{
     // counter
     int counter;
     // entry.stem()
@@ -39,20 +40,22 @@ struct Line {
 
     Line(int counter,
          std::string entryName,
-         const std::vector<double>& eigenvalues,
+         const std::vector<double> &eigenvalues,
          double conditionNumber,
          double invConditionNumber)
         : counter(counter),
           entryName(entryName),
           eigenvalues(eigenvalues),
           conditionNumber(conditionNumber),
-          invConditionNumber(invConditionNumber) {
+          invConditionNumber(invConditionNumber)
+    {
         ROFL_ASSERT(eigenvalues.size() == 6);
     }
 
     ~Line() { eigenvalues.clear(); }
 
-    friend std::ostream& operator<<(std::ostream& os, const Line& m) {
+    friend std::ostream &operator<<(std::ostream &os, const Line &m)
+    {
         os << "counter: " << m.counter << ", entryName: " << m.entryName
            << std::endl
            << "eigenvalues: " << m.eigenvalues[0] << " " << m.eigenvalues[1]
@@ -64,9 +67,10 @@ struct Line {
     }
 };
 
-bool isDegenerate(const Line& l, double thr, bool lesserTrue);
+bool isDegenerate(const Line &l, double thr, bool lesserTrue);
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     rofl::ParamMap params;
 
     std::string filenameIn;
@@ -98,7 +102,8 @@ int main(int argc, char** argv) {
     std::cout << "Params:" << std::endl;
     params.write(std::cout);
 
-    std::cout << "-------\n" << std::endl;
+    std::cout << "-------\n"
+              << std::endl;
 
     // sort by name input files
     std::set<fs::path> sortedByName;
@@ -119,19 +124,21 @@ int main(int argc, char** argv) {
             .stem()
             .string()
             .substr(fs::path(folderMethodId).stem().string().size() -
-                    5);  // fim3d, rtc3d or ise3d
+                    5); // fim3d, rtc3d or ise3d
     ROFL_VAR1(method)
 
     std::ifstream fileIn(filenameIn);
 
     std::ofstream fileOut(filenameOut);
 
-    if (!fileIn.is_open()) {
+    if (!fileIn.is_open())
+    {
         std::cerr << "Error: Could not open fileIn " << filenameIn << std::endl;
         return 1;
     }
 
-    if (!fileOut.is_open()) {
+    if (!fileOut.is_open())
+    {
         std::cerr << "Error: Could not open fileOut " << filenameOut
                   << std::endl;
         return 1;
@@ -142,17 +149,22 @@ int main(int argc, char** argv) {
     std::string line;
     int lineCtr = 0;
     std::vector<Line> lines;
-    while (std::getline(fileIn, line)) {
+    while (std::getline(fileIn, line))
+    {
         Line l;
         std::string s;
         std::istringstream iss(line);
         int inlineCtr = 0;
-        while (std::getline(iss, s, ',')) {
+        while (std::getline(iss, s, ','))
+        {
             // counter
-            if (inlineCtr == 0) {
+            if (inlineCtr == 0)
+            {
                 l.counter = std::stoi(s);
                 ROFL_ASSERT(lineCtr == l.counter)
-            } else if (inlineCtr == 1) {
+            }
+            else if (inlineCtr == 1)
+            {
                 // entry.stem()
                 std::string entryName = s;
                 // ROFL_VAR1(entryName)
@@ -163,38 +175,56 @@ int main(int argc, char** argv) {
                 // ROFL_VAR1(entryName)
 
                 l.entryName = entryName;
-            } else if (inlineCtr == 2) {
+            }
+            else if (inlineCtr == 2)
+            {
                 // eigsolIse.eigenvalues()(0)
                 l.eigenvalues[0] = std::stod(s);
-            } else if (inlineCtr == 3) {
+            }
+            else if (inlineCtr == 3)
+            {
                 // eigsolIse.eigenvalues()(1)
 
                 l.eigenvalues[1] = std::stod(s);
-            } else if (inlineCtr == 4) {
+            }
+            else if (inlineCtr == 4)
+            {
                 // eigsolIse.eigenvalues()(2)
 
                 l.eigenvalues[2] = std::stod(s);
-            } else if (inlineCtr == 5) {
+            }
+            else if (inlineCtr == 5)
+            {
                 // eigsolIse.eigenvalues()(3)
 
                 l.eigenvalues[3] = std::stod(s);
-            } else if (inlineCtr == 6) {
+            }
+            else if (inlineCtr == 6)
+            {
                 // eigsolIse.eigenvalues()(4)
 
                 l.eigenvalues[4] = std::stod(s);
-            } else if (inlineCtr == 7) {
+            }
+            else if (inlineCtr == 7)
+            {
                 // eigsolIse.eigenvalues()(5)
 
                 l.eigenvalues[5] = std::stod(s);
-            } else if (inlineCtr == 8) {
+            }
+            else if (inlineCtr == 8)
+            {
                 // (eigMaxIse / eigMinIse)
 
                 l.conditionNumber = std::stod(s);
-            } else if (inlineCtr == 9) {
+            }
+            else if (inlineCtr == 9)
+            {
                 // (eigMinIse / eigMaxIse)
 
                 l.invConditionNumber = std::stod(s);
-            } else {
+            }
+            else
+            {
                 ROFL_VAR1("Bad inlineCtr")
             }
             inlineCtr++;
@@ -204,7 +234,8 @@ int main(int argc, char** argv) {
         lineCtr++;
     }
 
-    for (int i = 0; i < lines.size(); ++i) {
+    for (int i = 0; i < lines.size(); ++i)
+    {
         fileOut << isDegenerate(lines[i], thr, lesserTrue) << " "
                 << lines[i].conditionNumber << std::endl;
     }
@@ -227,7 +258,7 @@ int main(int argc, char** argv) {
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(
         new pcl::PointCloud<pcl::PointXYZ>);
-    dsd::binToPcl(musIn, cloud);  // just for visualization purposes
+    dsd::binToPcl(musIn, cloud); // just for visualization purposes
 
     // viewer->removeAllPointClouds();
     // viewer->removeAllShapes();
@@ -255,13 +286,17 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-bool isDegenerate(const Line& l, double thr, bool lesserTrue) {
-    if (l.conditionNumber < thr) {
+bool isDegenerate(const Line &l, double thr, bool lesserTrue)
+{
+    if (l.conditionNumber < thr)
+    {
         if (lesserTrue)
             return true;
         else
             return false;
-    } else {
+    }
+    else
+    {
         if (lesserTrue)
             return false;
         else

@@ -40,7 +40,6 @@ int main(int argc, char **argv)
     // Output mode (quat or aa)
     params.getParam<std::string>("in", folderInPath,
                                  std::string("sample.csv"));
-                                 
 
     // hier GME
     params.getParam<double>("sigmaMin", sigmaMin, 0.05);
@@ -106,13 +105,13 @@ int main(int argc, char **argv)
                 pcl::PointXYZ pI(pcl::PointXYZ(csvScanMain.pts[i](0),
                                                csvScanMain.pts[i](1), 0.0f));
                 Eigen::Vector2d pIVehicleCoord; // pI in Vehicle coordinates;
-                Eigen::Vector2d pIEig;      // pI in Eigen
+                Eigen::Vector2d pIEig;          // pI in Eigen
                 pIEig << pI.x, pI.y;
                 pIVehicleCoord = pIEig; // initializing it here with no real
-                                    // purpose laserToVehicle(pIEig, pIVehicleCoord,
-                                    // laser2VehicleX, laser2VehicleY, laser2VehicleT); if
-                                    // (pI.getVector3fMap().norm() < fimRange
-                                    // && !dsd::isVehicleShapePt(pIVehicleCoord))
+                                        // purpose laserToVehicle(pIEig, pIVehicleCoord,
+                                        // laser2VehicleX, laser2VehicleY, laser2VehicleT); if
+                                        // (pI.getVector3fMap().norm() < fimRange
+                                        // && !dsd::isVehicleShapePt(pIVehicleCoord))
                 // ROFL_VAR1(pIEig.transpose());
 
                 if (dsd::isVehicleShapePt(pIEig))
@@ -182,14 +181,14 @@ int main(int argc, char **argv)
             dsd::plotEllipsesArrows(viewer, musOut, sigmasOut, weightsOut);
 
             //
-            std::vector<double> vmm;
+            std::vector<double> vomp;
             double maxVal, minVal;
             // musOut.erase(musOut.begin() + 1, musOut.end());
             // sigmasOut.erase(sigmasOut.begin() + 1, sigmasOut.end());
             // weightsOut.erase(weightsOut.begin() + 1, weightsOut.end());
             {
                 rofl::ScopedTimer vonMisesStats("von Mises stats");
-                dsd::vonMisesStats(vmm, nSamples, musOut, sigmasOut,
+                dsd::vonMisesStats(vomp, nSamples, musOut, sigmasOut,
                                    weightsOut);
                 execTimeI += vonMisesStats.elapsedTimeMs();
             }
@@ -201,53 +200,53 @@ int main(int argc, char **argv)
                 pcl::visualization::PCL_VISUALIZER_COLOR, 0.05, 0.05, 0.05,
                 "cloud");
 
-            // for (size_t i = 0; i < vmm.size(); ++i)
+            // for (size_t i = 0; i < vomp.size(); ++i)
             // {
-            // ROFL_VAR3(i, 360.0 * i / nSamples, vmm[i]);
+            // ROFL_VAR3(i, 360.0 * i / nSamples, vomp[i]);
             // }
-            maxVal = *std::max_element(vmm.begin(), vmm.end());
-            minVal = *std::min_element(vmm.begin(), vmm.end());
-            int maxId = std::distance(vmm.begin(),
-                                      std::max_element(vmm.begin(), vmm.end()));
+            maxVal = *std::max_element(vomp.begin(), vomp.end());
+            minVal = *std::min_element(vomp.begin(), vomp.end());
+            int maxId = std::distance(vomp.begin(),
+                                      std::max_element(vomp.begin(), vomp.end()));
 
             ROFL_VAR3(maxId, minVal, maxVal);
 
             /**
              * Plot VMM distribution values
              */
-            dsd::plotVmm(vmm, minVal, maxVal, viewer);
+            dsd::plotVomp(vomp, minVal, maxVal, viewer);
 
             /**
              * Find peaks of VMM
              */
-            std::vector<int> vmmMaxima;
+            std::vector<int> vompMaxima;
             {
                 rofl::ScopedTimer vonMisesMax("von Mises max");
-                dsd::vonMisesMax(vmmMaxima, vmm, angleWin);
+                dsd::vonMisesMax(vompMaxima, vomp, angleWin);
                 execTimeI += vonMisesMax.elapsedTimeMs();
             }
 
             // compute error metrics (numZeroFails, numEqualFails, numWayBigger)
-            if (vmmMaxima.size() == 0)
+            if (vompMaxima.size() == 0)
             {
                 numZeroFails++;
             }
 
             bool isEqualFl = false;
-            for (int k = 0; k < vmmMaxima.size(); ++k)
+            for (int k = 0; k < vompMaxima.size(); ++k)
             {
-                ROFL_VAR3(k, vmmMaxima[k], vmm[vmmMaxima[k]]);
+                ROFL_VAR3(k, vompMaxima[k], vomp[vompMaxima[k]]);
 
-                ROFL_ASSERT(vmm[vmmMaxima[k]] > 0)
+                ROFL_ASSERT(vomp[vompMaxima[k]] > 0)
 
                 // numEqualFails check
-                if (k > 0 && vmmMaxima.size() == 2 || k > 1) // this should be ok since they need to be equal in couples
+                if (k > 0 && vompMaxima.size() == 2 || k > 1) // this should be ok since they need to be equal in couples
                 {
-                    for (int k2 = 0; k2 < vmmMaxima.size(); ++k2)
+                    for (int k2 = 0; k2 < vompMaxima.size(); ++k2)
                     {
                         if (k2 == k)
                             continue;
-                        if (dsd::isEqualFloats(vmm[vmmMaxima[k]], vmm[vmmMaxima[k2]]))
+                        if (dsd::isEqualFloats(vomp[vompMaxima[k]], vomp[vompMaxima[k2]]))
                         {
                             isEqualFl = true;
                             break;
@@ -263,23 +262,23 @@ int main(int argc, char **argv)
 
             // isWayBigger check
             bool isWayBigger = true;
-            if (vmmMaxima.size() > 2)
+            if (vompMaxima.size() > 2)
             {
-                for (int k = 0; k < vmmMaxima.size(); ++k)
-                    for (int k2 = 0; k2 < vmmMaxima.size(); ++k2)
+                for (int k = 0; k < vompMaxima.size(); ++k)
+                    for (int k2 = 0; k2 < vompMaxima.size(); ++k2)
                     {
                         if (k2 == k)
                             continue;
 
-                        if (!dsd::isEqualFloats(vmm[vmmMaxima[k]], vmm[vmmMaxima[k2]]))
+                        if (!dsd::isEqualFloats(vomp[vompMaxima[k]], vomp[vompMaxima[k2]]))
                         {
-                            if (vmm[vmmMaxima[k]] < vmm[vmmMaxima[k2]])
+                            if (vomp[vompMaxima[k]] < vomp[vompMaxima[k2]])
                             {
-                                if (2 * vmm[vmmMaxima[k]] >= vmm[vmmMaxima[k2]])
+                                if (2 * vomp[vompMaxima[k]] >= vomp[vompMaxima[k2]])
                                     isWayBigger = false;
                             }
-                            else // if (vmm[vmmMaxima[k]] > vmm[vmmMaxima[k2]])
-                                if (vmm[vmmMaxima[k]] <= 2 * vmm[vmmMaxima[k2]])
+                            else // if (vomp[vompMaxima[k]] > vomp[vompMaxima[k2]])
+                                if (vomp[vompMaxima[k]] <= 2 * vomp[vompMaxima[k2]])
                                     isWayBigger = false;
                         }
                     }
@@ -291,7 +290,7 @@ int main(int argc, char **argv)
             }
 
             // save outputs to file:
-            // vmm peaks
+            // vomp peaks
             std::string logName = std::filesystem::path(folderInPath)
                                       .parent_path()
                                       .filename()
@@ -317,22 +316,22 @@ int main(int argc, char **argv)
                 unsigned first = entryStr.find_last_of('_') + 1;
                 unsigned last = entryStr.find_last_of('.');
                 std::string scanIdStr = entryStr.substr(first, last - first);
-                if (vmmMaxima.size() > 2)
+                if (vompMaxima.size() > 2)
                 {
-                    std::vector<double> vmmSorted;
-                    for (int i = 0; i < vmmMaxima.size(); ++i)
-                        vmmSorted.push_back(vmm[vmmMaxima[i]]);
-                    std::sort(vmmSorted.begin(), vmmSorted.end(), std::greater<double>());
-                    if (vmmSorted[0] < 3 * vmmSorted[2])
-                    {   
-                        ROFL_VAR2(vmmSorted[0], vmmSorted[2])
+                    std::vector<double> vompSorted;
+                    for (int i = 0; i < vompMaxima.size(); ++i)
+                        vompSorted.push_back(vomp[vompMaxima[i]]);
+                    std::sort(vompSorted.begin(), vompSorted.end(), std::greater<double>());
+                    if (vompSorted[0] < 3 * vompSorted[2])
+                    {
+                        ROFL_VAR2(vompSorted[0], vompSorted[2])
                         fout << scanIdStr << ", " << 2.5 << std::endl;
                     }
                     else
-                        fout << scanIdStr << ", " << vmmMaxima.size() << std::endl;
+                        fout << scanIdStr << ", " << vompMaxima.size() << std::endl;
                 }
                 else
-                    fout << scanIdStr << ", " << vmmMaxima.size() << std::endl;
+                    fout << scanIdStr << ", " << vompMaxima.size() << std::endl;
 
                 fout.close();
                 firstScan = false;
@@ -354,21 +353,22 @@ int main(int argc, char **argv)
                 unsigned first = entryStr.find_last_of('_') + 1;
                 unsigned last = entryStr.find_last_of('.');
                 std::string scanIdStr = entryStr.substr(first, last - first);
-                if (vmmMaxima.size() > 2)
+                if (vompMaxima.size() > 2)
                 {
-                    std::vector<double> vmmSorted;
-                    for (int i = 0; i < vmmMaxima.size(); ++i)
-                        vmmSorted.push_back(vmm[vmmMaxima[i]]);
-                    std::sort(vmmSorted.begin(), vmmSorted.end(), std::greater<double>());
-                    if (vmmSorted[0] < 3 * vmmSorted[2]) {
-                        ROFL_VAR2(vmmSorted[0], vmmSorted[2])
+                    std::vector<double> vompSorted;
+                    for (int i = 0; i < vompMaxima.size(); ++i)
+                        vompSorted.push_back(vomp[vompMaxima[i]]);
+                    std::sort(vompSorted.begin(), vompSorted.end(), std::greater<double>());
+                    if (vompSorted[0] < 3 * vompSorted[2])
+                    {
+                        ROFL_VAR2(vompSorted[0], vompSorted[2])
                         fout << scanIdStr << ", " << 2.5 << std::endl;
                     }
                     else
-                        fout << scanIdStr << ", " << vmmMaxima.size() << std::endl;
+                        fout << scanIdStr << ", " << vompMaxima.size() << std::endl;
                 }
                 else
-                    fout << scanIdStr << ", " << vmmMaxima.size() << std::endl; //!! TOFIX: bug that at times does not allow only scan id to be printed to file (but rather a longer string)
+                    fout << scanIdStr << ", " << vompMaxima.size() << std::endl; //!! TOFIX: bug that at times does not allow only scan id to be printed to file (but rather a longer string)
                 fout.close();
             }
 

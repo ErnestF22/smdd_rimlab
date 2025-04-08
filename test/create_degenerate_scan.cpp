@@ -11,7 +11,7 @@ void createCorridor2d(double xsize,
                       double ysize,
                       double xres,
                       int wallNum,
-                      dsd::VectorVector2& cloud);
+                      dsd::VectorVector2 &cloud);
 
 void createCorridor3d(double xsize,
                       double ysize,
@@ -20,13 +20,14 @@ void createCorridor3d(double xsize,
                       double yres,
                       double zres,
                       int wallNum,
-                      dsd::VectorVector3& cloud);
+                      dsd::VectorVector3 &cloud);
 
-void saveCsv2d(const std::string& filename, dsd::VectorVector2& cloud);
+void saveCsv2d(const std::string &filename, dsd::VectorVector2 &cloud);
 
-void saveCsv3d(const std::string& filename, dsd::VectorVector3& cloud);
+void saveCsv3d(const std::string &filename, dsd::VectorVector3 &cloud);
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     std::string filenameCfg, filenameOut;
     std::string cloudFormat;
     int ndim, nwall;
@@ -53,18 +54,27 @@ int main(int argc, char** argv) {
     std::cout << "Params:" << std::endl;
     params.write(std::cout);
 
-    if (ndim == 2) {
+    if (ndim == 2)
+    {
         createCorridor2d(xsize, ysize, xres, nwall, cloud2);
-        if (cloudFormat == "csv") {
+        if (cloudFormat == "csv")
+        {
             saveCsv2d(filenameOut, cloud2);
-        } else {
+        }
+        else
+        {
             ROFL_ERR("invalid file format \"" << cloudFormat << "\"");
         }
-    } else if (ndim == 3) {
+    }
+    else if (ndim == 3)
+    {
         createCorridor3d(xsize, ysize, zsize, xres, yres, zres, nwall, cloud3);
-        if (cloudFormat == "csv") {
+        if (cloudFormat == "csv")
+        {
             saveCsv3d(filenameOut, cloud3);
-        } else {
+        }
+        else
+        {
             ROFL_ERR("invalid file format \"" << cloudFormat << "\"");
         }
     }
@@ -76,17 +86,20 @@ void createCorridor2d(double xsize,
                       double ysize,
                       double xres,
                       int wallNum,
-                      dsd::VectorVector2& cloud) {
+                      dsd::VectorVector2 &cloud)
+{
     dsd::Vector2 p;
     double xmin = -0.5 * xsize;
     double ymin = -0.5 * ysize;
     double ymax = 0.5 * ysize;
     int xnum = ceil(xsize / xres);
     cloud.clear();
-    for (int ix = 0; ix < xnum; ++ix) {
+    for (int ix = 0; ix < xnum; ++ix)
+    {
         p << xmin + ix * xres, ymin;
         cloud.push_back(p);
-        if (wallNum > 1) {
+        if (wallNum > 1)
+        {
             p << xmin + ix * xres, ymax;
             cloud.push_back(p);
         }
@@ -100,7 +113,8 @@ void createCorridor3d(double xsize,
                       double yres,
                       double zres,
                       int wallNum,
-                      dsd::VectorVector3& cloud) {
+                      dsd::VectorVector3 &cloud)
+{
     dsd::Vector3 p;
     double xmin = -0.5 * xsize;
     double ymin = -0.5 * ysize;
@@ -111,25 +125,31 @@ void createCorridor3d(double xsize,
     int ynum = ceil(ysize / yres);
     int znum = ceil(zsize / zres);
     cloud.clear();
-    for (int ix = 0; ix < xnum; ++ix) {
+    for (int ix = 0; ix < xnum; ++ix)
+    {
         double x = xmin + ix * xres;
 
-        for (int iz = 0; ix < xnum; ++ix) {
+        for (int iz = 0; ix < xnum; ++ix)
+        {
             double z = zmin + iz * zres;
             p << x, ymin, z;
             cloud.push_back(p);
-            if (wallNum > 1) {
+            if (wallNum > 1)
+            {
                 p << x, ymax, z;
                 cloud.push_back(p);
             }
         }
 
-        if (wallNum > 2) {
-            for (int iy = 0; iy < ynum; ++ix) {
+        if (wallNum > 2)
+        {
+            for (int iy = 0; iy < ynum; ++ix)
+            {
                 double y = ymin + iy * yres;
                 p << x, y, zmin;
                 cloud.push_back(p);
-                if (wallNum > 3) {
+                if (wallNum > 3)
+                {
                     p << x, y, zmax;
                     cloud.push_back(p);
                 }
@@ -138,19 +158,23 @@ void createCorridor3d(double xsize,
     }
 }
 
-void saveCsv2d(const std::string& filename, dsd::VectorVector2& cloud) {
+void saveCsv2d(const std::string &filename, dsd::VectorVector2 &cloud)
+{
     std::ofstream file(filename);
     file << "x, y\n";
-    for (auto p : cloud) {
+    for (auto p : cloud)
+    {
         file << p(0) << ", " << p(1) << "\n";
     }
     file.close();
 }
 
-void saveCsv3d(const std::string& filename, dsd::VectorVector3& cloud) {
+void saveCsv3d(const std::string &filename, dsd::VectorVector3 &cloud)
+{
     std::ofstream file(filename);
     file << "x, y, z\n";
-    for (auto p : cloud) {
+    for (auto p : cloud)
+    {
         file << p(0) << ", " << p(1) << ", " << p(2) << "\n";
     }
     file.close();

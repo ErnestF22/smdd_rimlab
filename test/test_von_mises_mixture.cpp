@@ -78,7 +78,7 @@ int main(int argc, char **argv)
             pcl::PointXYZ pI(pcl::PointXYZ(csvScanMain.pts[i](0),
                                            csvScanMain.pts[i](1), 0.0f));
             Eigen::Vector2d pIVehicleCoord; // pI in Vehicle coordinates;
-            Eigen::Vector2d pIEig;      // pI in Eigen
+            Eigen::Vector2d pIEig;          // pI in Eigen
             pIEig << pI.x, pI.y;
             pIVehicleCoord =
                 pIEig; // initializing it here with no real purpose
@@ -158,54 +158,54 @@ int main(int argc, char **argv)
 
         // dsd::plotEllipsesArrows(viewer, musOut, sigmasOut, weightsOut);
 
-        std::vector<double> vmm;
+        std::vector<double> vomp;
         double maxVal, minVal;
         // musOut.erase(musOut.begin() + 1, musOut.end());
         // sigmasOut.erase(sigmasOut.begin() + 1, sigmasOut.end());
         // weightsOut.erase(weightsOut.begin() + 1, weightsOut.end());
         {
             rofl::ScopedTimer("von Mises stats");
-            dsd::vonMisesStats(vmm, nSamples, musOut, sigmasOut, weightsOut);
+            dsd::vonMisesStats(vomp, nSamples, musOut, sigmasOut, weightsOut);
         }
         rofl::Profiler::getProfiler().printStats(std::cout);
 
-        for (size_t i = 0; i < vmm.size(); ++i)
+        for (size_t i = 0; i < vomp.size(); ++i)
         {
-            // ROFL_VAR3(i, 360.0 * i / nSamples, vmm[i]);
+            // ROFL_VAR3(i, 360.0 * i / nSamples, vomp[i]);
         }
-        maxVal = *std::max_element(vmm.begin(), vmm.end());
-        minVal = *std::min_element(vmm.begin(), vmm.end());
-        int maxId = std::distance(vmm.begin(),
-                                  std::max_element(vmm.begin(), vmm.end()));
+        maxVal = *std::max_element(vomp.begin(), vomp.end());
+        minVal = *std::min_element(vomp.begin(), vomp.end());
+        int maxId = std::distance(vomp.begin(),
+                                  std::max_element(vomp.begin(), vomp.end()));
 
         ROFL_VAR3(maxId, minVal, maxVal);
 
         dsd::plotEllipsesArrows(viewer, musOut, sigmasOut, weightsOut);
 
-        dsd::plotVmm(vmm, minVal, maxVal, viewer);
+        dsd::plotVomp(vomp, minVal, maxVal, viewer);
 
         // plot von Mises mixture vector(matrix)
 
-        Eigen::MatrixXd vmmEigenMat(nSamples, 1);
+        Eigen::MatrixXd vompEigenMat(nSamples, 1);
 
         for (int jAngle = 0; jAngle < nSamples; ++jAngle)
         {
             // int j = jTheta * sizePhis + jAngle;
             // double phi = dtheta * jAngle;
-            vmmEigenMat(jAngle, 0) = vmm[jAngle];
+            vompEigenMat(jAngle, 0) = vomp[jAngle];
         }
 
-        std::ofstream fileOutVmm("vmm2d.csv");
-        fileOutVmm << vmmEigenMat << std::endl;
-        fileOutVmm.close();
+        std::ofstream fileOutVomp("vomp2d.csv");
+        fileOutVomp << vompEigenMat << std::endl;
+        fileOutVomp.close();
 
         //////////
 
-        std::vector<int> vmmMaxima;
-        dsd::vonMisesMax(vmmMaxima, vmm, angleWin);
-        for (int k = 0; k < vmmMaxima.size(); ++k)
+        std::vector<int> vompMaxima;
+        dsd::vonMisesMax(vompMaxima, vomp, angleWin);
+        for (int k = 0; k < vompMaxima.size(); ++k)
         {
-            ROFL_VAR3(k, vmmMaxima[k], vmm[vmmMaxima[k]]);
+            ROFL_VAR3(k, vompMaxima[k], vomp[vompMaxima[k]]);
         }
     }
 

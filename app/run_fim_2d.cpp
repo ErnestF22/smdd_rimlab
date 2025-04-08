@@ -87,13 +87,13 @@ int main(int argc, char **argv)
                 std::isfinite(csvScanMain.pts[i](1)))
             {
                 Eigen::Vector2d pIVehicleCoord; // pI in Vehicle coordinates;
-                Eigen::Vector2d pIEig;      // pI in Eigen
+                Eigen::Vector2d pIEig;          // pI in Eigen
                 pIEig << csvScanMain.pts[i](0), csvScanMain.pts[i](1);
                 pIVehicleCoord = pIEig; // initializing it here with no real
-                                    // purpose laserToVehicle(pIEig, pIVehicleCoord,
-                                    // laser2VehicleX, laser2VehicleY, laser2VehicleT); if
-                                    // (pI.getVector3fMap().norm() < fimRange
-                                    // && !dsd::isVehicleShapePt(pIVehicleCoord))
+                                        // purpose laserToVehicle(pIEig, pIVehicleCoord,
+                                        // laser2VehicleX, laser2VehicleY, laser2VehicleT); if
+                                        // (pI.getVector3fMap().norm() < fimRange
+                                        // && !dsd::isVehicleShapePt(pIVehicleCoord))
                 // ROFL_VAR1(pIEig.transpose());
 
                 if (dsd::isVehicleShapePt(pIEig))

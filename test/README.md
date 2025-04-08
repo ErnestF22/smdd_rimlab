@@ -1,42 +1,29 @@
-- create_corridor_log.cpp
-Tests creation of a benchmark-sample corridor log
+- create_degenerate_scan.cpp\
+Create a highly-degenerate scan and optionally save it in CSV format
 
-- create_corridor_log_moving.cpp
-Tests creation of a benchmark-sample moving corridor log (simulates motion of an Vehicle along a perfectly sampled corridor)
+- estimate_pair_hessian_ise_rtc.cpp\
+Test 2D registration based on ISE, RTC on a single input CSV
 
-- estimate_pair_hessian_ise_rtc.cpp
-Test multiple scan registration based on ISE (TODO)
+- test_fisher_matrix_gsl_eigen.cpp\
+Test to compare eigen-based computation of FIM and its EGSL equivalent
 
-- plot_eigs.cpp
-Plot eigenvalues and eigenvectors of FIM (Eigen library-based computation)
-
-- plot_eigs_gsl.cpp
-Plot eigenvalues and eigenvectors of FIM (EGSL-based computation)
-
-- test_create_corridor_log.cpp
-Tests FIM of a benchmark sample created corridor log
-
-- test_fisher_matrix_2d_vs_3d.cpp
-Test that compares 2D formulation of FIM and its 3D formulation when applied on a 2D scan
-
-- test_fisher_matrix_3d.cpp
-Attempt of extending FIM to 3D case
-
-- test_fisher_matrix_gsl_eigen.cpp
-Test that compares eigen-based computation of FIM and its EGSL equivalent
-
-- test_fisher_matrix_rimlab
-Test that runs an Eigen-based version of Censi's FIM computation, using an outer-product-based method for computing covariance matrices and related normals
-
-- test_fisher_matrix
+- test_fisher_matrix\
 Test that runs Censi's FIM computation with original support from GSL/EGSL libraries -> DEPRECATED in Ubuntu > 20.4
 
-- test_gme.cpp
-Test Gaussian Mixture Estimator
+- test_gaussian_estimator_3d.cpp\
+Test 3D Gaussian Mixture Hierarchical Simplifier
 
-- test_ise_registration.cpp
-Test multiple scan registration based on ISE (TODO)
+- test_gme.cpp\
+Test 2D Gaussian Mixture Hierarchical Estimator
 
-- test_von_mises_mixture.cpp
-Test VMM on CSV input
+- test_ise_registration.cpp\
+Test multiple scan registration based on ISE
 
+- test_vomp_cuda.cu\
+Test CUDA-based 3D version of VOMP on input 3D .bin point cloud
+
+- test_vomp_cuda.cu\
+Test 2D version of VOMP on CSV input
+
+- test_von_mises_mixture.cpp\
+Test Von Mises Distribution grid generation on CSV input

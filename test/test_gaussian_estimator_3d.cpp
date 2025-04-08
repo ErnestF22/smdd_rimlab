@@ -17,7 +17,8 @@
 
 using namespace std::chrono_literals;
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     std::string filenameCfg, fileIn;
     std::string lidarTypeStr;
     BinReader::LidarType lidarType;
@@ -45,21 +46,29 @@ int main(int argc, char** argv) {
     params.getParam<double>("niseThr", niseThr, 0.20);
     params.getParam<std::string>("lidar", lidarTypeStr, "Velodyne");
 
-    std::cout << "-------\n" << std::endl;
+    std::cout << "-------\n"
+              << std::endl;
 
     std::cout << "Params:" << std::endl;
     params.write(std::cout);
 
-    if (lidarTypeStr == "Velodyne") {
+    if (lidarTypeStr == "Velodyne")
+    {
         ROFL_MSG("LIDAR Type: Velodyne");
         lidarType = BinReader::LidarType::VELODYNE;
-    } else if (lidarTypeStr == "Ouster") {
+    }
+    else if (lidarTypeStr == "Ouster")
+    {
         ROFL_MSG("LIDAR Type: Ouster");
         lidarType = BinReader::LidarType::OUSTER;
-    } else if (lidarTypeStr == "Livox") {
+    }
+    else if (lidarTypeStr == "Livox")
+    {
         ROFL_MSG("LIDAR Type: Livox");
         lidarType = BinReader::LidarType::LIVOX;
-    } else {
+    }
+    else
+    {
         ROFL_MSG("LIDAR Type: INVALID!\n  selected default type Velodyne");
         lidarType = BinReader::LidarType::VELODYNE;
     }
@@ -84,7 +93,8 @@ int main(int argc, char** argv) {
 
     std::cout << "computed " << gme3d.gaussians().size() << "  Gaussian kernels"
               << std::endl;
-    for (int k = 0; k < musOut.size() && k < covarsOut.size(); ++k) {
+    for (int k = 0; k < musOut.size() && k < covarsOut.size(); ++k)
+    {
         ROFL_MSG("k " << k << ": mu " << musOut[k].transpose() << "\n"
                       << covarsOut[k]);
     }
@@ -102,10 +112,12 @@ int main(int argc, char** argv) {
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(
         new pcl::PointCloud<pcl::PointXYZ>);
-    for (int i = 0; i < musIn.size(); ++i) {
+    for (int i = 0; i < musIn.size(); ++i)
+    {
         // copy scan into PCL cloud (2D)
         if (std::isfinite(musIn[i](0)) && std::isfinite(musIn[i](1)) &&
-            std::isfinite(musIn[i](2))) {
+            std::isfinite(musIn[i](2)))
+        {
             pcl::PointXYZ pI;
             pI.x = musIn[i](0);
             pI.y = musIn[i](1);
@@ -117,7 +129,8 @@ int main(int argc, char** argv) {
     viewer->addPointCloud<pcl::PointXYZ>(cloud, "cloud");
     dsd::plotEllipsesArrows3d(viewer, musOut, covarsOut, weightsOut);
 
-    while (!viewer->wasStopped()) {
+    while (!viewer->wasStopped())
+    {
         viewer->spinOnce(100);
         std::this_thread::sleep_for(100ms);
     }

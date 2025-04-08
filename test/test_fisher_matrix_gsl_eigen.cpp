@@ -5,13 +5,14 @@
 
 #include <orientation_eigen.h>
 
-void computeFIM(Eigen::Matrix3f& fim,
+void computeFIM(Eigen::Matrix3f &fim,
                 float sigma,
                 float theta_robot,
-                const std::vector<double>& alphas,
-                const std::vector<double>& phis,
-                const std::vector<double>& ranges) {
-    int n = ranges.size();  // = alphas.size();
+                const std::vector<double> &alphas,
+                const std::vector<double> &phis,
+                const std::vector<double> &ranges)
+{
+    int n = ranges.size(); // = alphas.size();
     float sigmaSq = sigma * sigma;
     ROFL_VAR2(n, sigma);
 
@@ -19,7 +20,8 @@ void computeFIM(Eigen::Matrix3f& fim,
 
     // betas
     std::vector<float> betas(n, 0.0f);
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i)
+    {
         float alpha_i = alphas[i];
         float phi_i = phis[i];
         float beta_i = alpha_i - (theta_robot + phi_i);
@@ -27,8 +29,9 @@ void computeFIM(Eigen::Matrix3f& fim,
     }
 
     // building matrix
-    fim = Eigen::Matrix3f::Zero();  // resetting matrix
-    for (int i = 0; i < n; ++i) {
+    fim = Eigen::Matrix3f::Zero(); // resetting matrix
+    for (int i = 0; i < n; ++i)
+    {
         ROFL_VAR1(i);
         float r = ranges[i];
         Eigen::Matrix3f fim_i(Eigen::Matrix3f::Zero());
@@ -50,12 +53,12 @@ void computeFIM(Eigen::Matrix3f& fim,
         float fim_i_22 = r_i * r_i * tbi * tbi;
 
         fim_i.block(0, 0, 2, 2) =
-            fim_i_11;  // block() params startRow, startCol, numRows, numCols
+            fim_i_11; // block() params startRow, startCol, numRows, numCols
         fim_i.block(0, 2, 2, 1) =
-            fim_i_12;  // block() params startRow, startCol, numRows, numCols
+            fim_i_12; // block() params startRow, startCol, numRows, numCols
         fim_i.block(2, 0, 1, 2) =
-            fim_i_12.transpose();  // block() params startRow, startCol,
-                                   // numRows, numCols
+            fim_i_12.transpose(); // block() params startRow, startCol,
+                                  // numRows, numCols
         fim_i(2, 2) = fim_i_22;
 
         // adding fim_i to fim
@@ -65,7 +68,8 @@ void computeFIM(Eigen::Matrix3f& fim,
     fim *= (1 / sigmaSq);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
     /*Fisher’s information matrix is defined by the first derivatives
     of the ray-tracing function r with respect to t and θ*/
 
@@ -93,7 +97,8 @@ int main(int argc, char* argv[]) {
     params.adaptTildeInPaths();
     params.getParam<std::string>("in", filePath, std::string("sample.csv"));
 
-    std::cout << "-------\n" << std::endl;
+    std::cout << "-------\n"
+              << std::endl;
 
     std::cout << "Params:" << std::endl;
     params.write(std::cout);
@@ -101,7 +106,8 @@ int main(int argc, char* argv[]) {
     std::string logPath = filePath;
     std::cout << "--LogPath: " << logPath << std::endl;
 
-    if (!std::filesystem::exists(logPath)) {
+    if (!std::filesystem::exists(logPath))
+    {
         std::cout << "Invalid log path!" << std::endl;
         return 0;
     }
@@ -113,29 +119,34 @@ int main(int argc, char* argv[]) {
 
     Scan scan_main;
     float angleIncMain = 0.0;
-    while (true) {
+    while (true)
+    {
         LogFrame frame;
         Scan scan;
         bool readCommRecv = reader.readFrame(FrameType::COMM_RECV, frame);
-        if (readCommRecv) {
+        if (readCommRecv)
+        {
             frame.type = FrameType::COMM_RECV;
             Deserializer des(frame.data);
             uint32_t remoteIp = des.read32u();
             uint16_t remotePort = des.read16u();
-            des.skip(4);  // uint32_t recvBytes = des.read32u();
+            des.skip(4); // uint32_t recvBytes = des.read32u();
 
             uint32_t magicNum = des.read32u();
             uint16_t pckType = des.read16u();
             uint16_t version = des.read16u();
 
-            if (magicNum != PCK_MAGIC_NUMBER) {
+            if (magicNum != PCK_MAGIC_NUMBER)
+            {
                 throw("Wrong magic number!");
             }
-            if (version > 2) {
+            if (version > 2)
+            {
                 throw("Wrong version!");
             }
 
-            if (pckType == 2 && version == 2) {
+            if (pckType == 2 && version == 2)
+            {
                 // Vehicle pose
                 float VehiclePoseX = des.read32f();
                 float VehiclePoseY = des.read32f();
@@ -167,7 +178,7 @@ int main(int argc, char* argv[]) {
                 tx = -laser2VehicleX;
                 float laser2VehicleY = des.read32f();
                 ty = -laser2VehicleY;
-                float laser2VehicleT = des.read32f();  // suppose T stands for theta
+                float laser2VehicleT = des.read32f(); // suppose T stands for theta
                 theta_robot = -laser2VehicleT;
                 float laserHeight = des.read32f();
                 float frequency = des.read32f();
@@ -183,15 +194,19 @@ int main(int argc, char* argv[]) {
                 std::vector<point> points;
                 ranges.resize(numBeams);
                 points.resize(numBeams);
-                for (size_t i = 0; i < numBeams; ++i) {
-                    auto& r = ranges[i];
-                    auto& p = points[i];
+                for (size_t i = 0; i < numBeams; ++i)
+                {
+                    auto &r = ranges[i];
+                    auto &p = points[i];
                     uint16_t rangeRead = des.read16u();
-                    if (rangeRead == uint16_t(65535)) {
-                        r = std::numeric_limits<float>::infinity();  // invalid
-                                                                     // range
+                    if (rangeRead == uint16_t(65535))
+                    {
+                        r = std::numeric_limits<float>::infinity(); // invalid
+                                                                    // range
                         p.x = p.y = std::numeric_limits<float>::infinity();
-                    } else {
+                    }
+                    else
+                    {
                         r = float(rangeRead) * rangeScale;
                         float theta = float(i) * angleInc + angleMin;
                         p.x = r * cosf(theta);
@@ -211,14 +226,17 @@ int main(int argc, char* argv[]) {
         }
 
         bool readCommSent = reader.readFrame(FrameType::COMM_SENT, frame);
-        if (readCommSent) {
+        if (readCommSent)
+        {
             Deserializer des(frame.data);
             des.seek(14);
             uint32_t magic = des.read32u();
-            if (magic == PCK_MAGIC_NUMBER) {
+            if (magic == PCK_MAGIC_NUMBER)
+            {
                 des.seek(18);
                 uint16_t pckType = des.read16u();
-                if (pckType == 8) {
+                if (pckType == 8)
+                {
                     des.seek(24);
                     uint8_t errLength = des.read8u();
                     des.skip(errLength);
@@ -228,7 +246,8 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-        if (!readCommRecv && !readCommSent) {
+        if (!readCommRecv && !readCommSent)
+        {
             break;
         }
         std::cout << "Scan id: " << scan.id << " "
@@ -238,20 +257,21 @@ int main(int argc, char* argv[]) {
                   << std::endl;
         std::cout << "---------------------------------------------"
                   << std::endl;
-    }  // end of log reader
+    } // end of log reader
 
     std::vector<double> ranges(
         scan_main.ranges.begin(),
         scan_main.ranges
-            .end());  // scan_main.ranges is actually a vector of floats
+            .end()); // scan_main.ranges is actually a vector of floats
 
     int n = ranges.size();
     std::cout << "scan_main ranges size " << n << std::endl;
 
     // phis
     std::vector<double> phis(n, 0.0f);
-    for (int i = 0; i < n; ++i) {
-        double phi_i = scan_main.points[i].phi;  // this would actually be phi
+    for (int i = 0; i < n; ++i)
+    {
+        double phi_i = scan_main.points[i].phi; // this would actually be phi
         phis[i] = phi_i;
     }
 
@@ -269,13 +289,16 @@ int main(int argc, char* argv[]) {
         cov0_alphas(n, 0.0f);
     int whsize = 5;
     // double theta0 = theta_robot;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         std::vector<double> ranges_part;
-        std::vector<double> phis_part;  //(phis.begin(), phis.begin() + 100);
+        std::vector<double> phis_part; //(phis.begin(), phis.begin() + 100);
         int jmin = std::max<int>(0, i - whsize);
         int jmax = std::min<int>(n - 1, i + whsize);
-        for (int j = jmin; j <= jmax; ++j) {
-            if (j != i && isValid(ranges[i])) {
+        for (int j = jmin; j <= jmax; ++j)
+        {
+            if (j != i && isValid(ranges[i]))
+            {
                 ROFL_VAR2(i, j);
                 ranges_part.push_back(ranges[j]);
                 phis_part.push_back(phis[j]);
@@ -284,7 +307,8 @@ int main(int argc, char* argv[]) {
         double theta0 = phis[i];
         double rho0 = ranges[i];
         double alpha = 42, cov0_alpha = 32;
-        if (!isValid(rho0)) {
+        if (!isValid(rho0))
+        {
             continue;
         }
         int wsize = ranges_part.size();

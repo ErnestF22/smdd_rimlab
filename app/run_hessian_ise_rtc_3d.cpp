@@ -17,7 +17,8 @@
 #include <dsd_utils.h>
 #include <gme_gaussian_metric.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     std::string filenameCfg, filePath;
     std::string folderInPath, filenameOutIse, filenameOutRtc, filenameOutTime;
     std::set<fs::path> sortedByName;
@@ -50,21 +51,29 @@ int main(int argc, char** argv) {
                                  "../results_ise_rtc_3d/");
     params.getParam<std::string>("lidar", lidarTypeStr, "Velodyne");
 
-    std::cout << "-------\n" << std::endl;
+    std::cout << "-------\n"
+              << std::endl;
 
     std::cout << "Params:" << std::endl;
     params.write(std::cout);
 
-    if (lidarTypeStr == "Velodyne") {
+    if (lidarTypeStr == "Velodyne")
+    {
         ROFL_MSG("LIDAR Type: Velodyne");
         lidarType = BinReader::LidarType::VELODYNE;
-    } else if (lidarTypeStr == "Ouster") {
+    }
+    else if (lidarTypeStr == "Ouster")
+    {
         ROFL_MSG("LIDAR Type: Ouster");
         lidarType = BinReader::LidarType::OUSTER;
-    } else if (lidarTypeStr == "Livox") {
+    }
+    else if (lidarTypeStr == "Livox")
+    {
         ROFL_MSG("LIDAR Type: Livox");
         lidarType = BinReader::LidarType::LIVOX;
-    } else {
+    }
+    else
+    {
         ROFL_MSG("LIDAR Type: INVALID!\n  selected default type Velodyne");
         lidarType = BinReader::LidarType::VELODYNE;
     }
@@ -78,7 +87,7 @@ int main(int argc, char** argv) {
                                   dsd::Vector2(-3.0, 3.0));
 
     // Reads file from the input directory
-    for (auto& entry : fs::directory_iterator(folderInPath))
+    for (auto &entry : fs::directory_iterator(folderInPath))
         sortedByName.insert(entry.path());
 
     std::string folderAppendNameStamped = dsd::generateStampedString("", "");
@@ -100,7 +109,8 @@ int main(int argc, char** argv) {
     ROFL_ASSERT(fileRtc);
 
     int counter = 0;
-    for (const auto& entry : sortedByName) {
+    for (const auto &entry : sortedByName)
+    {
         binReader.readCloudBin(entry.c_str(), lidarType);
 
         dsd::VectorVector3 musIn = binReader.getCloud();
@@ -148,7 +158,8 @@ int main(int argc, char** argv) {
         Eigen::SelfAdjointEigenSolver<dsd::Matrix6> eigsolIse(hessianIse);
         double eigMinIse = fabs(eigsolIse.eigenvalues()(0));
         double eigMaxIse = fabs(eigsolIse.eigenvalues()(5));
-        if (eigMaxIse < eigMinIse) {
+        if (eigMaxIse < eigMinIse)
+        {
             std::swap(eigMinIse, eigMaxIse);
         }
         std::cout << "ISE gradient: " << gradIse.transpose() << "\n"
@@ -170,7 +181,8 @@ int main(int argc, char** argv) {
         Eigen::SelfAdjointEigenSolver<dsd::Matrix6> eigsolRtc(hessianRtc);
         double eigMinRtc = fabs(eigsolRtc.eigenvalues()(0));
         double eigMaxRtc = fabs(eigsolRtc.eigenvalues()(5));
-        if (eigMaxRtc < eigMinRtc) {
+        if (eigMaxRtc < eigMinRtc)
+        {
             std::swap(eigMinRtc, eigMaxRtc);
         }
         std::cout << "RTC gradient: " << gradRtc.transpose() << "\n"
@@ -191,7 +203,8 @@ int main(int argc, char** argv) {
 
         rofl::Profiler::getProfiler().printStats(std::cout);
         std::ofstream fileTime(filenameOutTime);
-        if (fileTime.is_open()) {
+        if (fileTime.is_open())
+        {
             rofl::Profiler::getProfiler().printStats(fileTime);
             fileTime.close();
         }

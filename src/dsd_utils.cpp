@@ -108,7 +108,7 @@ namespace dsd
         return denom * exp(k * cos(x - mu));
     }
 
-    void vonMisesMixture(std::vector<double> &vmm,
+    void vonMisesMixture(std::vector<double> &vomp,
                          int nSamples,
                          const std::vector<double> &mu,
                          const std::vector<double> &k,
@@ -116,21 +116,21 @@ namespace dsd
     {
         double dtheta = 2.0 * M_PI / nSamples;
 
-        vmm.resize(nSamples);
-        vmm.assign(nSamples, 0.0f);
+        vomp.resize(nSamples);
+        vomp.assign(nSamples, 0.0f);
         for (int i = 0; i < nSamples; ++i)
         {
             double theta = dtheta * i;
-            // vmm[i] = 0.0;
+            // vomp[i] = 0.0;
             for (int j = 0; j < mu.size(); ++j)
             {
-                vmm[i] += w[j] * vonMises(theta, mu[j], k[j]);
-                // ROFL_VAR1(vmm[i]);
+                vomp[i] += w[j] * vonMises(theta, mu[j], k[j]);
+                // ROFL_VAR1(vomp[i]);
             }
         }
     }
 
-    void vonMisesStats(std::vector<double> &vmm,
+    void vonMisesStats(std::vector<double> &vomp,
                        int nSamples,
                        const VectorVector2 &mus,
                        const VectorMatrix2 &sigmas,
@@ -138,13 +138,13 @@ namespace dsd
     {
         std::vector<double> phis;
         std::vector<double> kappas;
-        std::vector<double> weightsVmm;
+        std::vector<double> weightsVomp;
         double phiTmp;
 
         size_t numGaussians = mus.size();
         phis.resize(2 * numGaussians);
         kappas.resize(2 * numGaussians);
-        weightsVmm.resize(2 * numGaussians);
+        weightsVomp.resize(2 * numGaussians);
 
         for (int i = 0; i < numGaussians; ++i)
         {
@@ -162,48 +162,48 @@ namespace dsd
             kappas[2 * i] = lmax / lmin;
             phis[2 * i + 1] = phiTmp + M_PI;
             kappas[2 * i + 1] = kappas[2 * i];
-            weightsVmm[2 * i] = weights[i];
-            weightsVmm[2 * i + 1] = weights[i];
+            weightsVomp[2 * i] = weights[i];
+            weightsVomp[2 * i + 1] = weights[i];
 
             // ROFL_VAR3(i, phis[i], kappas[i]);
         }
 
-        vonMisesMixture(vmm, nSamples, phis, kappas, weightsVmm);
+        vonMisesMixture(vomp, nSamples, phis, kappas, weightsVomp);
     }
 
     void vonMisesMax(std::vector<int> &maximaIdx,
-                     const std::vector<double> &vmm,
+                     const std::vector<double> &vomp,
                      double angleWin,
                      int findPeaksWindow)
     {
         auto func = [&](int idx) -> double
-        { return vmm[idx]; };
-        double angleRes = 2.0 * M_PI / vmm.size();
+        { return vomp[idx]; };
+        double angleRes = 2.0 * M_PI / vomp.size();
 
         if (findPeaksWindow == 0)
             findPeaksWindow = (int)ceil(angleWin / angleRes);
 
         ROFL_VAR1(findPeaksWindow)
         double minval = 0.0;
-        find_peak_circular(func, 0, vmm.size(), findPeaksWindow, minval,
+        find_peak_circular(func, 0, vomp.size(), findPeaksWindow, minval,
                            std::back_inserter(maximaIdx));
 
         std::vector<int> maximaIdx2;
-        find_peak(func, 0, vmm.size(), findPeaksWindow, minval,
+        find_peak(func, 0, vomp.size(), findPeaksWindow, minval,
                   std::back_inserter(maximaIdx2));
 
         if (maximaIdx.size() % 2 != 0)
         {
-            for (int i = 0; i < vmm.size(); ++i)
+            for (int i = 0; i < vomp.size(); ++i)
             {
-                ROFL_VAR3(i, angleRes * i, vmm[i]);
+                ROFL_VAR3(i, angleRes * i, vomp[i]);
             }
             ROFL_VAR1("maxima of find_peak_circular");
             for (auto &m : maximaIdx)
-                ROFL_VAR2(m, vmm[m]);
+                ROFL_VAR2(m, vomp[m]);
             ROFL_VAR1("maxima of find_peak");
             for (auto &m : maximaIdx2)
-                ROFL_VAR2(m, vmm[m]);
+                ROFL_VAR2(m, vomp[m]);
             ROFL_ASSERT_VAR1(0, maximaIdx.size())
         }
     }
@@ -458,23 +458,23 @@ namespace dsd
         }
     }
 
-    void plotVmm(const std::vector<double> &vmm,
-                 double vmmMin,
-                 double vmmMax,
-                 pcl::visualization::PCLVisualizer::Ptr viewer,
-                 dsd::SaveCsvOptions saveOutput)
+    void plotVomp(const std::vector<double> &vomp,
+                  double vompMin,
+                  double vompMax,
+                  pcl::visualization::PCLVisualizer::Ptr viewer,
+                  dsd::SaveCsvOptions saveOutput)
     {
         double radiusBig = 2.0;
-        for (int i = 0; i < vmm.size(); ++i)
+        for (int i = 0; i < vomp.size(); ++i)
         {
             pcl::ModelCoefficients circleCoeff;
             double radius = 0.1, angle;
-            angle = 2.0 * M_PI / vmm.size() * i;
-            double ratio = (vmm[i] - vmmMin) / (vmmMax - vmmMin);
+            angle = 2.0 * M_PI / vomp.size() * i;
+            double ratio = (vomp[i] - vompMin) / (vompMax - vompMin);
 
             circleCoeff.values.resize(3); // We need 3 values
-            circleCoeff.values[0] = (vmm[i] / vmmMax) * radiusBig * cos(angle);
-            circleCoeff.values[1] = (vmm[i] / vmmMax) * radiusBig * sin(angle);
+            circleCoeff.values[0] = (vomp[i] / vompMax) * radiusBig * cos(angle);
+            circleCoeff.values[1] = (vomp[i] / vompMax) * radiusBig * sin(angle);
             circleCoeff.values[2] = radius;
             std::string circleId =
                 "circle" + boost::lexical_cast<std::string, int>(i);

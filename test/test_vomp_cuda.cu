@@ -153,15 +153,15 @@ int main(int argc, char **argv)
                   { n *= cloudSz; });
 
     //
-    dsd::VectorVector3 musVmm;
-    std::vector<double> kappasVmm;
-    std::vector<double> weightsVmm;
+    dsd::VectorVector3 musVomp;
+    std::vector<double> kappasVomp;
+    std::vector<double> weightsVomp;
     int szPadded = dsd::computeSzPadded(musOut.size(), nSamples, numThreads);
     ROFL_VAR1("von Mises stats")
     {
         rofl::ScopedTimer vonMisesStats("von Mises stats");
 
-        dsd::vonMisesStats3dCuda(musVmm, kappasVmm, weightsVmm, szPadded, musOut, sigmasOut, weightsOut); // TODO: AUTOMATE szPadded
+        dsd::vonMisesStats3dCuda(musVomp, kappasVomp, weightsVomp, szPadded, musOut, sigmasOut, weightsOut); // TODO: AUTOMATE szPadded
 
         execTimeI += vonMisesStats.elapsedTimeMs();
         ROFL_VAR1(vonMisesStats.elapsedTimeMs());
@@ -169,16 +169,16 @@ int main(int argc, char **argv)
     rofl::Profiler::getProfiler().printStats(std::cout);
 
     /********************START OF CUDA-RELATED PART************************/
-    // CUDA MALLOC! -> vmm
-    int mukwSz = musVmm.size(); //= szPadded
-    ROFL_VAR1(mukwSz);          // !! MANDATORY PADDING!
+    // CUDA MALLOC! -> vomp
+    int mukwSz = musVomp.size(); //= szPadded
+    ROFL_VAR1(mukwSz);           // !! MANDATORY PADDING!
 
-    ROFL_ASSERT(mukwSz == szPadded && mukwSz == kappasVmm.size() && mukwSz == weightsVmm.size())
+    ROFL_ASSERT(mukwSz == szPadded && mukwSz == kappasVomp.size() && mukwSz == weightsVomp.size())
 
-    int totalVmmSz = musVmm.size() * 2 * nSamples * nSamples; // musOut.size() * 2
-    double *vmmDevice;
-    cudaMalloc((void **)&vmmDevice, totalVmmSz * sizeof(double));
-    ROFL_VAR1(totalVmmSz); // !! MANDATORY PADDING!
+    int totalVompSz = musVomp.size() * 2 * nSamples * nSamples; // musOut.size() * 2
+    double *vompDevice;
+    cudaMalloc((void **)&vompDevice, totalVompSz * sizeof(double));
+    ROFL_VAR1(totalVompSz); // !! MANDATORY PADDING!
     // cudaMemcpy(kernelInput, dataChunk.data(), (dataChunk.size()) * sizeof (cuars::Vec2d), cudaMemcpyHostToDevice);
     // cudaMemset()
 
@@ -187,14 +187,14 @@ int main(int argc, char **argv)
     // CUDA MALLOC! -> mus
     double3 *musDevice;
     cudaMalloc((void **)&musDevice, mukwSz * sizeof(double3));
-    cudaMemcpy(musDevice, musVmm.data(), (musVmm.size()) * sizeof(double3), cudaMemcpyHostToDevice); // cudaMemcpy on double3 ??
+    cudaMemcpy(musDevice, musVomp.data(), (musVomp.size()) * sizeof(double3), cudaMemcpyHostToDevice); // cudaMemcpy on double3 ??
     // CUDA MALLOC! -> k
     double *kDevice;
     cudaMalloc((void **)&kDevice, mukwSz * sizeof(double));
-    cudaMemcpy(kDevice, kappasVmm.data(), (kappasVmm.size()) * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(kDevice, kappasVomp.data(), (kappasVomp.size()) * sizeof(double), cudaMemcpyHostToDevice);
 
     // kernel input params:
-    //  double *vmm, int nSamples, //!! mu size needs to be 3 times the size of k, w
+    //  double *vomp, int nSamples, //!! mu size needs to be 3 times the size of k, w
     //  const double3 *mu, const double *k, const double *w, const int mukwSz
     int numBlocks = szPadded * 2 * nSamples * nSamples / numThreads; // TODO: automate numBlocks computation
     ROFL_VAR1(numBlocks);
@@ -202,11 +202,11 @@ int main(int argc, char **argv)
     cudaEventCreate(&startKernelAll);
     cudaEventCreate(&stopKernelAll);
     cudaEventRecord(startKernelAll);
-    vmm3d_kernel<<<numBlocks, numThreads>>>(vmmDevice, nSamples, musDevice, kDevice, szPadded);
+    vomp3d_kernel<<<numBlocks, numThreads>>>(vompDevice, nSamples, musDevice, kDevice, szPadded);
     cudaEventRecord(stopKernelAll);
 
-    // std::vector<double> vmmHost(totalVmmSz, 0.0);
-    // cudaMemcpy(vmmHost.data(), vmmDevice, (totalVmmSz) * sizeof(double), cudaMemcpyDeviceToHost);
+    // std::vector<double> vompHost(totalVompSz, 0.0);
+    // cudaMemcpy(vompHost.data(), vompDevice, (totalVompSz) * sizeof(double), cudaMemcpyDeviceToHost);
 
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if (cudaerr != cudaSuccess)
@@ -223,12 +223,12 @@ int main(int argc, char **argv)
     cudaFree(kDevice);
     cudaFree(musDevice);
 
-    // maxVal = vmmHost.empty() ? -1 : *std::max_element(vmmHost.begin(), vmmHost.end());
-    // minVal = vmmHost.empty() ? -1 : *std::min_element(vmmHost.begin(), vmmHost.end());
-    // int maxId = vmmHost.empty()
+    // maxVal = vompHost.empty() ? -1 : *std::max_element(vompHost.begin(), vompHost.end());
+    // minVal = vompHost.empty() ? -1 : *std::min_element(vompHost.begin(), vompHost.end());
+    // int maxId = vompHost.empty()
     //                 ? -1
-    //                 : std::distance(vmmHost.begin(),
-    //                                 std::max_element(vmmHost.begin(), vmmHost.end()));
+    //                 : std::distance(vompHost.begin(),
+    //                                 std::max_element(vompHost.begin(), vompHost.end()));
 
     // ROFL_VAR3(maxId, minVal, maxVal);
 
@@ -237,22 +237,22 @@ int main(int argc, char **argv)
     double *wDevice;
     cudaMalloc((void **)&wDevice, mukwSz * sizeof(double));
     // cuars::VecVec2d dataChunk(points.begin() + indicesStartEnd.first, points.begin() + (indicesStartEnd.first + currChunkSz));
-    cudaMemcpy(wDevice, weightsVmm.data(), (weightsVmm.size()) * sizeof(double), cudaMemcpyHostToDevice);
-    // CUDA MALLOC! -> vmmSums
-    double *vmmSumsDevice;
-    cudaMalloc((void **)&vmmSumsDevice, nSamples * 2 * nSamples * sizeof(double));
-    cudaMemset(vmmSumsDevice, 0.0, nSamples * 2 * nSamples);
+    cudaMemcpy(wDevice, weightsVomp.data(), (weightsVomp.size()) * sizeof(double), cudaMemcpyHostToDevice);
+    // CUDA MALLOC! -> vompSums
+    double *vompSumsDevice;
+    cudaMalloc((void **)&vompSumsDevice, nSamples * 2 * nSamples * sizeof(double));
+    cudaMemset(vompSumsDevice, 0.0, nSamples * 2 * nSamples);
 
     cudaEvent_t startKernelDevice, stopKernelDevice; // timing using CUDA events
     cudaEventCreate(&startKernelDevice);
     cudaEventCreate(&stopKernelDevice);
     cudaEventRecord(startKernelDevice);
     cudaEventRecord(stopKernelDevice);
-    vmm3d_summation_kernel<<<2 * nSamples * nSamples, 1>>>(vmmSumsDevice, nSamples, //!! mu size needs to be 3 times the size of k, w
-                                                           vmmDevice, wDevice, mukwSz);
+    vomp3d_summation_kernel<<<2 * nSamples * nSamples, 1>>>(vompSumsDevice, nSamples, //!! mu size needs to be 3 times the size of k, w
+                                                            vompDevice, wDevice, mukwSz);
 
-    std::vector<double> vmm(nSamples * 2 * nSamples, 0.0);
-    cudaMemcpy(vmm.data(), vmmSumsDevice, (nSamples * 2 * nSamples) * sizeof(double), cudaMemcpyDeviceToHost);
+    std::vector<double> vomp(nSamples * 2 * nSamples, 0.0);
+    cudaMemcpy(vomp.data(), vompSumsDevice, (nSamples * 2 * nSamples) * sizeof(double), cudaMemcpyDeviceToHost);
 
     cudaerr = cudaDeviceSynchronize();
     if (cudaerr != cudaSuccess)
@@ -267,44 +267,44 @@ int main(int argc, char **argv)
     cudaEventDestroy(stopKernelDevice);
 
     // int i = 0;
-    // for (auto &v : vmm)
+    // for (auto &v : vomp)
     // {
     //     ROFL_VAR2(i, v)
     //     ++i;
     // }
 
     cudaFree(wDevice);
-    cudaFree(vmmDevice);
+    cudaFree(vompDevice);
     /********************END OF CUDA-RELATED PART************************/
 
-    // for (size_t i = 0; i < vmm.size(); ++i)
+    // for (size_t i = 0; i < vomp.size(); ++i)
     // {
-    // ROFL_VAR3(i, 360.0 * i / nSamples, vmm[i]);
+    // ROFL_VAR3(i, 360.0 * i / nSamples, vomp[i]);
     // }
 
     /**
      * Plot VMM distribution values
      */
-    // dsd::plotVmm(vsmm, minVal, maxVal, viewer);
+    // dsd::plotVomp(vsmm, minVal, maxVal, viewer);
 
-    double maxVal = vmm.empty() ? -1 : *std::max_element(vmm.begin(), vmm.end());
-    double minVal = vmm.empty() ? -1 : *std::min_element(vmm.begin(), vmm.end());
-    int maxId = vmm.empty()
+    double maxVal = vomp.empty() ? -1 : *std::max_element(vomp.begin(), vomp.end());
+    double minVal = vomp.empty() ? -1 : *std::min_element(vomp.begin(), vomp.end());
+    int maxId = vomp.empty()
                     ? -1
-                    : std::distance(vmm.begin(),
-                                    std::max_element(vmm.begin(), vmm.end()));
+                    : std::distance(vomp.begin(),
+                                    std::max_element(vomp.begin(), vomp.end()));
     ROFL_VAR3(maxId, minVal, maxVal)
 
     /**
      * Find peaks of VMM
      */
     ROFL_VAR1("von Mises max")
-    std::vector<int> vmmMaxima;
+    std::vector<int> vompMaxima;
     std::vector<double> maximaValues;
     std::vector<std::pair<double, double>> thetaPhiMaxima;
     {
         rofl::ScopedTimer vonMisesMax("von Mises max");
-        dsd::fvmMax(vmmMaxima, maximaValues, thetaPhiMaxima, vmm, nSamples, angleWin);
+        dsd::vompMax(vompMaxima, maximaValues, thetaPhiMaxima, vomp, nSamples, angleWin);
         execTimeI += vonMisesMax.elapsedTimeMs();
         ROFL_VAR1(vonMisesMax.elapsedTimeMs())
     }
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
 
     int sizePhis = 2 * nSamples;
     int sizeThetas = nSamples;
-    Eigen::MatrixXd vmmEigenMat(sizePhis, sizeThetas);
+    Eigen::MatrixXd vompEigenMat(sizePhis, sizeThetas);
     for (int jTheta = 0; jTheta < sizeThetas; ++jTheta)
     {
         // double theta = dtheta * jTheta;
@@ -330,12 +330,12 @@ int main(int argc, char **argv)
         {
             // int j = jTheta * sizePhis + jPhi;
             // double phi = dtheta * jPhi;
-            vmmEigenMat(jPhi, jTheta) = vmm[jTheta * sizePhis + jPhi];
+            vompEigenMat(jPhi, jTheta) = vomp[jTheta * sizePhis + jPhi];
         }
     }
-    std::ofstream fileOutVmm("vmm.csv");
-    fileOutVmm << vmmEigenMat << std::endl;
-    fileOutVmm.close();
+    std::ofstream fileOutVomp("vomp.csv");
+    fileOutVomp << vompEigenMat << std::endl;
+    fileOutVomp.close();
 
     if (enablePclVisualization)
     {
