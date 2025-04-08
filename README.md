@@ -15,9 +15,9 @@ Executable scripts for running the methods on single scans are in folder test.
 
 Compiling should require the very standard pipeline
 
-> $ mkdir build && cd build
-> cmake ..
-> make
+> $ mkdir build && cd build\
+> cmake ..\
+> make\
 
 CMakeLists is set up so that both *test* and *app* executables will be found inside build/ folder.
 
