@@ -6,6 +6,12 @@ Create a highly-degenerate scan and optionally save it in CSV format
 - estimate_pair_hessian_ise_rtc.cpp\
 Test 2D registration based on ISE, RTC on a single input CSV
 
+- test drpm_example.cpp\
+Example executable from [DRPM](https://github.com/ntnu-arl/drpm) project
+
+- test drpm_geode.cpp\
+Example of [DRPM](https://github.com/ntnu-arl/drpm) usage on GEODE dataset
+
 - test_fisher_matrix_gsl_eigen.cpp\
 Test to compare eigen-based computation of FIM and its EGSL equivalent
 
