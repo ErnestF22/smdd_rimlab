@@ -120,12 +120,57 @@ int main(int argc, char **argv)
 
     // Points, normals and covariances must be expressed in the same frame of reference
     // For the conditioning of the Hessian, it is preferable to use the LiDAR frame (and not the world frame)
-    const std::vector<Eigen::Vector3d> points;  // = ...
-    const std::vector<Eigen::Vector3d> normals; // = ...
-    const std::vector<double> weights_squared;  // = ...
+    const std::vector<Eigen::Vector3d> points = musIn;
+
+    // Create the normal estimation class, and pass the input dataset to it
+    pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+    ne.setInputCloud(cloud);
+    // Create an empty kdtree representation, and pass it to the normal estimation object.
+    // Its content will be filled inside the object, based on the given input dataset (as no other search surface is given).
+    pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
+    ne.setSearchMethod(tree);
+    // Output datasets
+    pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(new pcl::PointCloud<pcl::Normal>);
+    // Use all neighbors in a sphere of radius 3cm
+    ne.setRadiusSearch(7);
+    // Compute the features
+    ne.compute(*cloud_normals);
+    // cloud_normals->size () should have the same size as the input cloud->size ()*
+
+    std::vector<Eigen::Vector3d> normals;
+    int ptsNanCtr = 0;
+    for (int i = 0; i < cloud_normals->size(); ++i)
+    {
+        if (std::isnan(cloud->points[i].x) || std::isnan(cloud->points[i].y) || std::isnan(cloud->points[i].z))
+            ptsNanCtr++;
+        // else
+        // {
+        //     ROFL_VAR4(i, cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);
+        // }
+        //
+        Eigen::Vector3d normal(cloud_normals->points[i].normal_x,
+                               cloud_normals->points[i].normal_y,
+                               cloud_normals->points[i].normal_z);
+        // if (!std::isnan(cloud_normals->points[i].curvature) && fabs(cloud_normals->points[i].curvature) > 1e-6)
+        //     ROFL_VAR2(i, cloud_normals->points[i].curvature);
+        normal.normalize();
+        normals.push_back(normal);
+    }
+
+    ROFL_VAR1(ptsNanCtr)
+
+    const std::vector<double> weights_squared(cloud->size(), 1.0); // does it need to be normalized??
+
     const auto normal_covariances = drpm_degeneracy::GetIsotropicCovariances(normals.size(), stdev_normals);
 
+    // for (size_t i = 0; i < normal_covariances.size(); ++i)
+    // {
+    //     ROFL_VAR2(i, normal_covariances[i].transpose())
+    // }
+
+    ROFL_VAR3(points.size(), normals.size(), weights_squared.size());
     const auto H = drpm_degeneracy::ComputeHessian(points, normals, weights_squared);
+    ROFL_VAR3(H.rows(), H.cols(), H);
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double, 6, 6>> eigensolver(H);
 
     const auto eigenvectors = eigensolver.eigenvectors();

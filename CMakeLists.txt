@@ -4,7 +4,7 @@ PROJECT(degenerate_subspace_detection LANGUAGES CXX CUDA C)
 set(CMAKE_CXX_FLAGS='-std=c++17')
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 # add_compile_definitions(EIGEN_MALLOC_ALREADY_ALIGNED)
 # add_compile_definitions(EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
@@ -125,7 +125,7 @@ add_executable(estimate_pair_hessian_ise_rtc test/estimate_pair_hessian_ise_rtc.
 target_link_libraries(estimate_pair_hessian_ise_rtc rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})
 
 add_executable(test_drpm_example test/test_drpm_example.cpp)
-target_link_libraries(test_drpm_example Eigen3::Eigen)
+target_link_libraries(test_drpm_example Eigen3::Eigen boost_filesystem boost_system)
 
 add_executable(test_drpm_geode test/test_drpm_geode.cpp)
 target_link_libraries(test_drpm_geode rofl_common boost_filesystem boost_system gmm_estim_lib ${PCL_LIBRARIES})

@@ -2,6 +2,8 @@
 #include <cmath>
 #include "Eigen/Eigenvalues"
 
+#include <rofl/common/macros.h>
+
 namespace drpm_degeneracy
 {
 
@@ -185,6 +187,11 @@ namespace drpm_degeneracy
             const Eigen::Vector3d point = points[i];
             const Eigen::Vector3d normal = normals[i];
             const Eigen::Vector3d pxn = point.cross(normal);
+            if (std::isnan(pxn.x()) || std::isnan(pxn.y()) || std::isnan(pxn.z()))
+            {
+                ROFL_VAR2(i, "NaN value encountered in point-normal cross product at this index");
+                continue; // Skip this point if the cross product is NaN
+            }
             const double w = std::sqrt(weights[i]);
             Eigen::Matrix<double, 6, 1> v;
             v.head(3) = w * pxn;
