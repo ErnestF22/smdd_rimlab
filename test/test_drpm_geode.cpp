@@ -176,6 +176,8 @@ int main(int argc, char **argv)
     const auto eigenvectors = eigensolver.eigenvectors();
     const auto eigenvalues = eigensolver.eigenvalues();
 
+    ROFL_VAR3(eigenvectors.rows(), eigenvectors.cols(), eigenvectors);
+
     Eigen::Matrix<double, 6, 6> noise_mean;
     Eigen::Matrix<double, 6, 1> noise_variance;
     const double snr_factor = 10.0;

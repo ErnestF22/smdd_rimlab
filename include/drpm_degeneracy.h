@@ -4,6 +4,21 @@
 
 #include <rofl/common/macros.h>
 
+bool isNanEigen(const Eigen::MatrixXd &matrix)
+{
+    for (int i = 0; i < matrix.rows(); ++i)
+    {
+        for (int j = 0; j < matrix.cols(); ++j)
+        {
+            if (std::isnan(matrix(i, j)))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 namespace drpm_degeneracy
 {
 
@@ -55,6 +70,12 @@ namespace drpm_degeneracy
 
             Matrix6 contribution_to_mean = (B * N * B.transpose()) * w;
 
+            if (isNanEigen(contribution_to_mean.eval()))
+            {
+                ROFL_VAR1("NaN value in contribution to mean calculation");
+                ROFL_VAR2(i, contribution_to_mean.eval())
+                continue;
+            }
             mean.noalias() += contribution_to_mean.eval();
 
             // v hat weighted by w
@@ -68,6 +89,12 @@ namespace drpm_degeneracy
                 const Vector6 u = U.col(k);
                 const T a = (u.transpose() * contribution_to_mean * u).value();
                 const T b = (u.transpose() * v).value();
+                if (std::isnan(a) || std::isnan(b))
+                {
+                    std::cout << "NaN value in variance calculation" << std::endl;
+                    ROFL_VAR3(k, a, b);
+                    continue;
+                }
                 const T contribution_to_variance = 2 * std::pow(a, 2) + 4 * a * std::pow(b, 2);
                 variance[k] += contribution_to_variance;
             }
@@ -93,6 +120,7 @@ namespace drpm_degeneracy
             const T measurement = (u.transpose() * measured_information_matrix * u).value();
             const T expected_noise = (u.transpose() * estimated_noise_mean * u).value();
             const T stdev = std::sqrt(estimated_noise_variances[k]);
+            ROFL_VAR2(k, estimated_noise_variances[k]);
             const T test_point = measurement / (T(1.0) + snr_factor);
 
             const bool any_nan = std::isnan(expected_noise) || std::isnan(stdev) || std::isnan(test_point);
