@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     // Output datasets
     pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(new pcl::PointCloud<pcl::Normal>);
     // Use all neighbors in a sphere of radius 3cm
-    ne.setRadiusSearch(7);
+    ne.setRadiusSearch(0.5);
     // Compute the features
     ne.compute(*cloud_normals);
     // cloud_normals->size () should have the same size as the input cloud->size ()*

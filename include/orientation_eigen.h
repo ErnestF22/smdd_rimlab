@@ -61,7 +61,7 @@ void filter_orientation(double theta0,
     ROFL_VAR1("Passed first for cycle in filter_orientation()");
 
     Eigen::MatrixXf eRinv = (R * R.transpose()).inverse();
-    ;
+
     Eigen::MatrixXf vcov_f1 = (L.transpose() * eRinv * L).inverse();
     Eigen::MatrixXf vf1 = vcov_f1 * L.transpose() * eRinv * Y;
 
